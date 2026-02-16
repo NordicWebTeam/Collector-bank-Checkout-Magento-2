@@ -6,6 +6,10 @@ use Webbhuset\CollectorPaymentSDK\Invoice\Article\Article as Article;
 use Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList as ArticleList;
 use Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRow;
 use Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRows;
+use Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleFactory;
+use Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleListFactory;
+use Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRowFactory;
+use Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRowsFactory;
 
 /**
  * Class RowMatcher
@@ -33,6 +37,10 @@ class RowMatcher
     protected $invoiceHandler;
     private \Webbhuset\CollectorCheckout\Test\GetOrderInformation $getOrderInformation;
     private \Webbhuset\CollectorCheckout\Helper\GetMatchingArticles $getMatchingArticles;
+    private ArticleListFactory $articleListFactory;
+    private ArticleFactory $articleFactory;
+    private InvoiceRowsFactory $invoiceRowsFactory;
+    private InvoiceRowFactory $invoiceRowFactory;
 
     /**
      * rowMatcher constructor.
@@ -43,7 +51,11 @@ class RowMatcher
         \Webbhuset\CollectorCheckout\Helper\GetMatchingArticles $getMatchingArticles,
         \Webbhuset\CollectorCheckout\Test\GetOrderInformation $getOrderInformation,
         \Webbhuset\CollectorCheckout\Invoice\RowMatcher\CreditMemoHandler $creditMemoHandler,
-        \Webbhuset\CollectorCheckout\Invoice\RowMatcher\InvoiceHandler $invoiceHandler
+        \Webbhuset\CollectorCheckout\Invoice\RowMatcher\InvoiceHandler $invoiceHandler,
+        ArticleListFactory $articleListFactory,
+        ArticleFactory $articleFactory,
+        InvoiceRowsFactory $invoiceRowsFactory,
+        InvoiceRowFactory $invoiceRowFactory
     ) {
         $this->orderHandler         = $orderHandler;
         $this->adapter              = $adapter;
@@ -51,6 +63,10 @@ class RowMatcher
         $this->invoiceHandler       = $invoiceHandler;
         $this->getOrderInformation  = $getOrderInformation;
         $this->getMatchingArticles  = $getMatchingArticles;
+        $this->articleListFactory   = $articleListFactory;
+        $this->articleFactory       = $articleFactory;
+        $this->invoiceRowsFactory   = $invoiceRowsFactory;
+        $this->invoiceRowFactory    = $invoiceRowFactory;
     }
 
     /**
@@ -66,7 +82,7 @@ class RowMatcher
     ): \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList {
         $checkoutDataArticleList = $this->checkoutDataToArticleList($order);
 
-        $matchingArticles = new ArticleList();
+        $matchingArticles = $this->articleListFactory->create();
 
         $matchingArticles = $this->getMatchingArticles->execute(
             $matchingArticles,
@@ -116,7 +132,7 @@ class RowMatcher
     ): \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList {
         $checkoutDataArticleList = $this->checkoutDataToArticleList($order);
 
-        $matchingArticles = new ArticleList();
+        $matchingArticles = $this->articleListFactory->create();
 
         $matchingArticles = $this->getMatchingArticles->execute(
             $matchingArticles,
@@ -164,7 +180,7 @@ class RowMatcher
         \Magento\Sales\Api\Data\OrderInterface $order
     ): \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList {
         $orderInformation = $this->getOrderInformation->execute((int)$order->getEntityId());
-        $articles = new ArticleList();
+        $articles = $this->articleListFactory->create();
 
         $items = $orderInformation['data']['items'];
         foreach ($items as $item) {
@@ -176,7 +192,14 @@ class RowMatcher
             $vat            = (float) $item['vatRate'];
             $unitPrice      = (float) $item['price'];
 
-            $article = new Article($articleId, $description, $qty, $sku, $unitPrice, $vat);
+            $article = $this->articleFactory->create([
+                'articleId' => $articleId,
+                'description' => $description,
+                'qty' => $qty,
+                'sku' => $sku,
+                'unitPrice' => $unitPrice,
+                'vat' => $vat
+            ]);
 
             $articles->addArticle($article);
         }
@@ -187,7 +210,7 @@ class RowMatcher
     public function convertArticleListToInvoiceRows(
         ArticleList $articleList
     ): InvoiceRows {
-        return new InvoiceRows();
+        return $this->invoiceRowsFactory->create();
     }
 
     /**
@@ -211,6 +234,13 @@ class RowMatcher
         }
         $qty = 1;
 
-        return new InvoiceRow($articleId, $description, $qty, $adjustmentFee, (float) $taxPercent, $type);
+        return $this->invoiceRowFactory->create([
+            'articleId' => $articleId,
+            'description' => $description,
+            'qty' => $qty,
+            'adjustmentFee' => $adjustmentFee,
+            'taxPercent' => (float) $taxPercent,
+            'type' => $type
+        ]);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace Webbhuset\CollectorCheckout;
 
-use Magento\Framework\Phrase;
 use Webbhuset\CollectorCheckout\Exception\QuoteNotInSyncException;
 
 class QuoteComparer
@@ -33,12 +32,12 @@ class QuoteComparer
     ): bool {
         $grandTotalInSync = $this->isGrandTotalSync($quote, $checkoutData);
         if (!$grandTotalInSync) {
-            throw new QuoteNotInSyncException(new Phrase('Grand total not in sync'));
+            throw new QuoteNotInSyncException(__('Grand total not in sync'));
         }
 
         $cartInSync = $this->isCartItemsInSync($quote, $checkoutData);
         if (!$cartInSync) {
-            throw new QuoteNotInSyncException(new Phrase('Items not in sync'));
+            throw new QuoteNotInSyncException(__('Items not in sync'));
         }
 
         return true;

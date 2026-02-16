@@ -13,14 +13,17 @@ class Index extends \Magento\Framework\App\Action\Action
      * @var \Webbhuset\CollectorCheckout\Data\QuoteHandler
      */
     protected $quoteHandler;
+
     /**
      * @var \Magento\Checkout\Model\Session
      */
     protected $checkoutSession;
+
     /**
      * @var \Magento\Framework\Controller\Result\JsonFactory
      */
     protected $resultJsonFactory;
+
     /**
      * @var \Magento\Quote\Api\CartRepositoryInterface
      */

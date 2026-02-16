@@ -16,6 +16,7 @@ class PartCredit extends Command
      * @var State
      */
     private $appState;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Test\PartCredit
      */

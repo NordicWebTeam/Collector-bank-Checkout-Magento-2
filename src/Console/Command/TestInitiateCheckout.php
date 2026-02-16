@@ -16,6 +16,7 @@ class TestInitiateCheckout extends Command
      * @var State
      */
     private $appState;
+
     /**
      * @var InitiateCheckout
      */

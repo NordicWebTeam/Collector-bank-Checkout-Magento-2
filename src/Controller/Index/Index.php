@@ -2,6 +2,8 @@
 
 namespace Webbhuset\CollectorCheckout\Controller\Index;
 
+use Webbhuset\CollectorCheckoutSDK\Config\IframeConfigFactory;
+
 /**
  * Class Index
  *
@@ -13,38 +15,51 @@ class Index extends \Magento\Framework\App\Action\Action
      * @var \Magento\Framework\View\Result\PageFactory
      */
     protected $pageFactory;
+
     /**
      * @var \Magento\Checkout\Model\Session
      */
     protected $checkoutSession;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Adapter
      */
     protected $collectorAdapter;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Data\QuoteHandler
      */
     protected $quoteDataHandler;
+
     /**
      * @var \Webbhuset\CollectorCheckout\QuoteConverter
      */
     protected $quoteConverter;
+
     /**
      * @var \Magento\Quote\Api\CartRepositoryInterface
      */
     protected $quoteRepository;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Config\Config
      */
     protected $config;
+
     /**
      * @var \Webbhuset\CollectorCheckout\QuoteValidator
      */
     protected $quoteValidator;
+
     /**
      * @var \Webbhuset\CollectorCheckout\QuoteComparerFactory
      */
     protected $quoteComparer;
+
+    /**
+     * @var IframeConfigFactory
+     */
+    private IframeConfigFactory $iframeConfigFactory;
 
     /**
      * Index constructor.
@@ -59,6 +74,7 @@ class Index extends \Magento\Framework\App\Action\Action
      * @param \Webbhuset\CollectorCheckout\Config\Config        $config
      * @param \Webbhuset\CollectorCheckout\QuoteValidator       $quoteValidator
      * @param \Webbhuset\CollectorCheckout\QuoteComparerFactory $quoteComparer
+     * @param IframeConfigFactory                               $iframeConfigFactory
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -70,7 +86,8 @@ class Index extends \Magento\Framework\App\Action\Action
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         \Webbhuset\CollectorCheckout\Config\Config $config,
         \Webbhuset\CollectorCheckout\QuoteValidator $quoteValidator,
-        \Webbhuset\CollectorCheckout\QuoteComparerFactory $quoteComparer
+        \Webbhuset\CollectorCheckout\QuoteComparerFactory $quoteComparer,
+        IframeConfigFactory $iframeConfigFactory
     ) {
         $this->pageFactory      = $pageFactory;
         $this->checkoutSession  = $checkoutSession;
@@ -81,6 +98,7 @@ class Index extends \Magento\Framework\App\Action\Action
         $this->config           = $config;
         $this->quoteValidator   = $quoteValidator;
         $this->quoteComparer    = $quoteComparer;
+        $this->iframeConfigFactory = $iframeConfigFactory;
 
         return parent::__construct($context);
     }
@@ -113,14 +131,14 @@ class Index extends \Magento\Framework\App\Action\Action
             $publicToken = $this->collectorAdapter->initOrSync($quote);
         }
 
-        $iframeConfig = new \Webbhuset\CollectorCheckoutSDK\Config\IframeConfig(
-            $publicToken,
-            $this->config->getStyleDataLang(),
-            $this->config->getStyleDataPadding(),
-            $this->config->getStyleDataContainerId(),
-            $this->config->getStyleDataActionColor(),
-            $this->config->getStyleDataActionTextColor()
-        );
+        $iframeConfig = $this->iframeConfigFactory->create([
+            'dataToken' => $publicToken,
+            'dataLang' => $this->config->getStyleDataLang(),
+            'dataPadding' => $this->config->getStyleDataPadding(),
+            'dataContainerId' => $this->config->getStyleDataContainerId(),
+            'dataActionColor' => $this->config->getStyleDataActionColor(),
+            'dataActionTextColor' => $this->config->getStyleDataActionTextColor()
+        ]);
         $iframe = \Webbhuset\CollectorCheckoutSDK\Iframe::getScript($iframeConfig, $this->config->getMode());
 
         $iframeSrc = $iframeConfig->getSrc($this->config->getMode());

@@ -16,6 +16,7 @@ class GetOrderInformation extends Command
      * @var State
      */
     private $appState;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Test\GetOrderInformation
      */

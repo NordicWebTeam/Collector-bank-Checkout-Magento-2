@@ -16,6 +16,7 @@ class PartActivate extends Command
      * @var State
      */
     private $appState;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Test\PartActivate
      */

@@ -5,29 +5,34 @@ namespace Webbhuset\CollectorCheckout\Oath;
 
 use Magento\Framework\App\CacheInterface;
 use Webbhuset\CollectorCheckout\Config\StoreConfigFactory;
-use Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKey;
-use Webbhuset\CollectorCheckoutSDK\Adapter\GetAccessKey;
+use Webbhuset\CollectorCheckoutSDK\Adapter\GetAccessKeyFactory;
 
 class AccessKeyManager
 {
     const CACHE_TTL = 3600; // 1 hour
     const CACHE_NAME = 'WALLEY_OATH_ACCESS_KEY';
     const CACHE_TAGS = 'WALLEY';
+
     /**
      * @var CacheInterface
      */
     private $cache;
+
     /**
      * @var StoreConfigFactory
      */
     private StoreConfigFactory $storeConfigFactory;
 
+    private GetAccessKeyFactory $getAccessKeyFactory;
+
     public function __construct(
         CacheInterface $cache,
-        StoreConfigFactory $storeConfig
+        StoreConfigFactory $storeConfig,
+        GetAccessKeyFactory $getAccessKeyFactory
     ) {
         $this->cache = $cache;
         $this->storeConfigFactory = $storeConfig;
+        $this->getAccessKeyFactory = $getAccessKeyFactory;
     }
 
     public function getAccessKeyByStore(int $storeId)
@@ -53,9 +58,9 @@ class AccessKeyManager
         /** @var \Webbhuset\CollectorCheckout\Config\StoreConfig $storeConfig */
         $storeConfig = $this->storeConfigFactory->create();
         $storeConfig->setScopeStoreId($storeId);
-        $makeAccessKeyRequest = new GetAccessKey(
-            $storeConfig
-        );
+        $makeAccessKeyRequest = $this->getAccessKeyFactory->create([
+            'config' => $storeConfig
+        ]);
 
         return $makeAccessKeyRequest->getAccessKey();
     }

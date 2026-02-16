@@ -2,9 +2,11 @@
 
 namespace Webbhuset\CollectorCheckout;
 
-use Magento\Framework\Phrase;
 use Webbhuset\CollectorCheckout\Exception\CanNotInitiateIframeException;
 use Webbhuset\CollectorCheckout\Exception\ResponseErrorOnCartUpdate;
+use Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKeyFactory;
+use Webbhuset\CollectorCheckoutSDK\Session;
+use Webbhuset\CollectorCheckoutSDK\SessionFactory;
 
 /**
  * Class Adapter
@@ -17,34 +19,51 @@ class Adapter
      * @var QuoteConverter
      */
     protected $quoteConverter;
+
     /**
      * @var Config\OrderConfigFactory
      */
     protected $orderConfigFactory;
+
     /**
      * @var Data\QuoteHandler
      */
     protected $configFactory;
+
     /**
      * @var Data\QuoteHandler
      */
     protected $quoteDataHandler;
+
     /**
      * @var Data\OrderHandler
      */
     protected $orderDataHandler;
+
     /**
      * @var QuoteUpdater
      */
     protected $quoteUpdater;
+
     /**
      * @var \Magento\Quote\Api\CartRepositoryInterface
      */
     protected $quoteRepository;
+
     /**
      * @var Logger\Logger
      */
     protected $logger;
+
+    /**
+     * @var SessionFactory
+     */
+    private SessionFactory $sessionFactory;
+
+    /**
+     * @var CurlWithAccessKeyFactory
+     */
+    private CurlWithAccessKeyFactory $curlWithAccessKeyFactory;
 
     /**
      * Adapter constructor.
@@ -65,7 +84,9 @@ class Adapter
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         \Webbhuset\CollectorCheckout\Config\QuoteConfigFactory $configFactory,
         \Webbhuset\CollectorCheckout\Config\OrderConfigFactory $orderConfigFactory,
-        \Webbhuset\CollectorCheckout\Logger\Logger $logger
+        \Webbhuset\CollectorCheckout\Logger\Logger $logger,
+        SessionFactory $sessionFactory,
+        CurlWithAccessKeyFactory $curlWithAccessKeyFactory
     ) {
         $this->quoteConverter       = $quoteConverter;
         $this->orderConfigFactory   = $orderConfigFactory;
@@ -75,6 +96,8 @@ class Adapter
         $this->quoteRepository      = $quoteRepository;
         $this->logger               = $logger;
         $this->orderDataHandler     = $orderDataHandler;
+        $this->sessionFactory       = $sessionFactory;
+        $this->curlWithAccessKeyFactory = $curlWithAccessKeyFactory;
     }
 
     /**
@@ -114,9 +137,7 @@ class Adapter
                     $this->logger->addCritical("Response error when updating fees. " . $errorMsg, $logContext);
 
                     throw new ResponseErrorOnCartUpdate(
-                        new Phrase(
-                            'Please refresh the page and try again.'
-                        )
+                        __('Please refresh the page and try again.')
                     );
                 }
             } catch (\Webbhuset\CollectorCheckout\Exception\ResponseErrorOnCartUpdate $responseError) {
@@ -204,7 +225,7 @@ class Adapter
         $countryCode = $config->getCountryCode();
         $adapter = $this->getAdapter($config);
 
-        $collectorSession = new \Webbhuset\CollectorCheckoutSDK\Session($adapter);
+        $collectorSession = $this->sessionFactory->create(['adapter' => $adapter]);
 
         try {
             $collectorSession->initialize(
@@ -246,9 +267,7 @@ class Adapter
             );
 
             throw new CanNotInitiateIframeException(
-                new Phrase(
-                    'Can not initiate payment window. Check var/log/collectorbank.log for error details.'
-                )
+                __('Can not initiate payment window. Check var/log/collectorbank.log for error details.')
             );
         }
 
@@ -316,7 +335,7 @@ class Adapter
     {
         $adapter = $this->getAdapter($config);
 
-        $collectorSession = new \Webbhuset\CollectorCheckoutSDK\Session($adapter);
+        $collectorSession = $this->sessionFactory->create(['adapter' => $adapter]);
         $collectorSession->load($privateId);
 
         return $collectorSession->getCheckoutData();
@@ -335,7 +354,7 @@ class Adapter
         /** @var \Webbhuset\CollectorCheckout\Config\QuoteConfig $config */
         $config = $this->configFactory->create(['quote' => $quote]);
         $adapter = $this->getAdapter($config);
-        $collectorSession = new \Webbhuset\CollectorCheckoutSDK\Session($adapter);
+        $collectorSession = $this->sessionFactory->create(['adapter' => $adapter]);
 
         if ($config->getIsDeliveryCheckoutActive()) {
             return $collectorSession;
@@ -368,9 +387,7 @@ class Adapter
             $this->logger->addCritical("Response error when updating fees. " . $errorMsg, $logContext);
 
             throw new ResponseErrorOnCartUpdate(
-                new Phrase(
-                    'Please refresh the page and try again.'
-                )
+                __('Please refresh the page and try again.')
             );
         }
 
@@ -389,7 +406,7 @@ class Adapter
     {
         $config = $this->configFactory->create(['quote' => $quote]);
         $adapter = $this->getAdapter($config);
-        $collectorSession = new \Webbhuset\CollectorCheckoutSDK\Session($adapter);
+        $collectorSession = $this->sessionFactory->create(['adapter' => $adapter]);
         $cart = $this->quoteConverter->getCart($quote);
         $privateId = $this->quoteDataHandler->getPrivateId($quote);
 
@@ -417,9 +434,7 @@ class Adapter
             $this->logger->addCritical("Response error when updating cart. " . $errorMsg, $logContext);
 
             throw new ResponseErrorOnCartUpdate(
-                new Phrase(
-                    'Please refresh the page and try again.'
-                )
+                __('Please refresh the page and try again.')
             );
         }
 
@@ -435,6 +450,6 @@ class Adapter
     public function getAdapter($config) : \Webbhuset\CollectorCheckoutSDK\Adapter\AdapterInterface
     {
 
-        return new \Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKey($config);
+        return $this->curlWithAccessKeyFactory->create(['config' => $config]);
     }
 }

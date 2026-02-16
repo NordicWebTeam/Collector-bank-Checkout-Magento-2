@@ -11,10 +11,12 @@ class Index extends \Magento\Framework\App\Action\Action
     protected $logger;
     protected $quoteRepository;
     protected $quoteCollection;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Config\OrderConfig
      */
     private $orderConfig;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Checkout\Order\ManagerFactory
      */

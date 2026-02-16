@@ -13,30 +13,37 @@ class Index extends \Magento\Framework\App\Action\Action
      * @var \Webbhuset\CollectorCheckout\Checkout\Order\ManagerFactory
      */
     protected $orderManager;
+
     /**
      * @var \Magento\Framework\Controller\Result\JsonFactory
      */
     protected $jsonResult;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Checkout\Customer\ManagerFactory
      */
     protected $customerManager;
+
     /**
      * @var
      */
     protected $checkoutSession;
+
     /**
      * @var \Magento\Quote\Api\CartRepositoryInterface
      */
     protected $quoteRepository;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Checkout\Quote\ManagerFactory
      */
     protected $quoteManager;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Logger\Logger
      */
     protected $logger;
+
     /**
      * @var \Webbhuset\CollectorCheckout\QuoteComparerFactory
      */
@@ -46,6 +53,7 @@ class Index extends \Magento\Framework\App\Action\Action
     protected $cartTotalManagement;
     protected $configFactory;
     protected $shippingMethodManagement;
+
     /**
      * Index constructor.
      *
@@ -109,6 +117,7 @@ class Index extends \Magento\Framework\App\Action\Action
             $this->quoteRepository->save($quote);
 
             $quote = $quoteManager->getQuoteByPublicToken($reference);
+
             /** @var \Webbhuset\CollectorCheckout\Config\QuoteConfig $config */
             $config = $this->configFactory->create(['quote' => $quote]);
             if($config->getIsDeliveryCheckoutActive()

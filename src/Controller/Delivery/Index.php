@@ -28,42 +28,52 @@ class Index extends Action
      * @var JsonFactory
      */
     protected $resultJsonFactory;
+
     /**
      * @var Manager
      */
     private $quoteManager;
+
     /**
      * @var RequestInterface
      */
     private $request;
+
     /**
      * @var ShippingMethodManagement
      */
     private $shippingMethodManagement;
+
     /**
      * @var ConvertToShipment
      */
     private $convertToShipment;
+
     /**
      * @var SimpleDataObjectConverter
      */
     private $simpleDataObjectConverter;
+
     /**
      * @var Json
      */
     private $json;
+
     /**
      * @var GetIconForShippingMethod
      */
     private $getIconForShippingMethod;
+
     /**
      * @var CartRepositoryInterface
      */
     private $cartRepository;
+
     /**
      * @var Context
      */
     private $context;
+
     /**
      * @var Logger
      */

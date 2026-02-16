@@ -16,6 +16,7 @@ class CancelInvoice extends Command
      * @var State
      */
     private $appState;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Test\CancelInvoice
      */

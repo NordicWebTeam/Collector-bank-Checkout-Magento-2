@@ -13,26 +13,32 @@ class Index extends \Magento\Framework\App\Action\Action
      * @var \Magento\Framework\Controller\Result\JsonFactory
      */
     protected $resultJsonFactory;
+
     /**
      * @var \Magento\Checkout\Model\Session
      */
     protected $checkoutSession;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Adapter
      */
     protected $collectorAdapter;
+
     /**
      * @var \Webbhuset\CollectorCheckout\QuoteConverter
      */
     protected $quoteConverter;
+
     /**
      * @var \Webbhuset\CollectorCheckout\QuoteUpdater
      */
     protected $quoteUpdater;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Logger\Logger
      */
     protected $logger;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Checkout\Quote\Manager
      */

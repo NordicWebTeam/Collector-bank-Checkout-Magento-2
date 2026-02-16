@@ -16,7 +16,7 @@ use Webbhuset\CollectorCheckout\Checkout\Order\ManagerFactory;
 use Webbhuset\CollectorCheckout\Config\Config;
 use Webbhuset\CollectorCheckout\Data\OrderHandlerFactory;
 use Webbhuset\CollectorCheckout\Logger\Logger;
-use Webbhuset\CollectorCheckoutSDK\Config\IframeConfig;
+use Webbhuset\CollectorCheckoutSDK\Config\IframeConfigFactory;
 use Webbhuset\CollectorCheckoutSDK\Iframe;
 
 /**
@@ -67,6 +67,11 @@ class Index extends Action
     protected $checkoutSession;
 
     /**
+     * @var IframeConfigFactory
+     */
+    private IframeConfigFactory $iframeConfigFactory;
+
+    /**
      * Index constructor.
      *
      * @param Context                 $context
@@ -78,6 +83,7 @@ class Index extends Action
      * @param Config                   $config
      * @param CartRepositoryInterface $quoteRepository
      * @param CheckoutSession         $checkoutSession
+     * @param IframeConfigFactory     $iframeConfigFactory
      */
     public function __construct(
         Context $context,
@@ -88,7 +94,8 @@ class Index extends Action
         Logger $logger,
         Config $config,
         CartRepositoryInterface $quoteRepository,
-        CheckoutSession $checkoutSession
+        CheckoutSession $checkoutSession,
+        IframeConfigFactory $iframeConfigFactory
     ) {
         $this->pageFactory      = $pageFactory;
         $this->collectorAdapter = $collectorAdapter;
@@ -98,6 +105,7 @@ class Index extends Action
         $this->config           = $config;
         $this->quoteRepository  = $quoteRepository;
         $this->checkoutSession  = $checkoutSession;
+        $this->iframeConfigFactory = $iframeConfigFactory;
 
         parent::__construct($context);
     }
@@ -148,14 +156,14 @@ class Index extends Action
         $orderDataHandler = $this->orderDataHandler->create();
         $publicToken = $orderDataHandler->getPublicToken($order);
 
-        $iframeConfig = new IframeConfig(
-            $publicToken,
-            $this->config->getStyleDataLang(),
-            $this->config->getStyleDataPadding(),
-            $this->config->getStyleDataContainerId(),
-            $this->config->getStyleDataActionColor(),
-            $this->config->getStyleDataActionTextColor()
-        );
+        $iframeConfig = $this->iframeConfigFactory->create([
+            'dataToken' => $publicToken,
+            'dataLang' => $this->config->getStyleDataLang(),
+            'dataPadding' => $this->config->getStyleDataPadding(),
+            'dataContainerId' => $this->config->getStyleDataContainerId(),
+            'dataActionColor' => $this->config->getStyleDataActionColor(),
+            'dataActionTextColor' => $this->config->getStyleDataActionTextColor()
+        ]);
         $iframe = Iframe::getScript($iframeConfig, $this->config->getMode());
 
         $page->getLayout()
