@@ -48,10 +48,6 @@ class Manager
      */
     protected $quoteManagement;
     /**
-     * @var ManagerFactory
-     */
-    protected $orderManager;
-    /**
      * @var \Magento\Framework\Registry
      */
     protected $registry;
@@ -100,7 +96,6 @@ class Manager
         \Webbhuset\CollectorCheckout\Checkout\Order\SetOrderStatus $setOrderStatus,
         \Webbhuset\CollectorCheckout\Config\OrderConfigFactory $configFactory,
         \Magento\Quote\Model\QuoteManagement $quoteManagement,
-        \Webbhuset\CollectorCheckout\Checkout\Order\ManagerFactory $orderManager,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTime,
         \Webbhuset\CollectorCheckout\Invoice\AdministrationFactory $invoice,
@@ -119,7 +114,6 @@ class Manager
         $this->orderManagement       = $orderManagement;
         $this->orderHandler          = $orderHandler;
         $this->quoteManagement       = $quoteManagement;
-        $this->orderManager          = $orderManager;
         $this->registry              = $registry;
         $this->dateTime              = $dateTime;
         $this->invoice               = $invoice;
@@ -192,7 +186,7 @@ class Manager
     public function removeNewOrdersByPublicToken($reference)
     {
         try {
-            $order = $this->orderManager->create()->getOrderByPublicToken($reference);
+            $order = $this->getOrderByPublicToken($reference);
             if (\Magento\Sales\Model\Order::STATE_NEW == $order->getState()) {
                 $this->removeAndCancelOrder($order);
             }
