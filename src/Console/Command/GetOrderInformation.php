@@ -55,9 +55,9 @@ class GetOrderInformation extends Command
         OutputInterface $output
     ) {
         $this->appState->setAreaCode('adminhtml');
-        $orderId = (string)$input->getOption('orderId');
-        $result = json_encode($this->orderInformation->execute($orderId));
-        $output->writeln($result);
+        $orderId = (int)$input->getOption('orderId');
+        $result = $this->orderInformation->execute($orderId);
+        $output->writeln($result->toJson());
 
         return 1;
     }

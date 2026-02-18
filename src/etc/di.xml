@@ -103,6 +103,12 @@
             for="Magento\Sales\Block\Adminhtml\Order\AbstractOrder"
             type="Webbhuset\CollectorCheckout\Block\Admin\Carrier"
     />
+    <preference
+        for="Webbhuset\CollectorCheckout\Api\Data\DTO\GetOrderInformationInterface"
+        type="Webbhuset\CollectorCheckout\Model\DTO\GetOrderInformation" />
+    <preference
+        for="Webbhuset\CollectorCheckout\Api\Data\DTO\GetOrderInformation\ItemInterface"
+        type="Webbhuset\CollectorCheckout\Model\DTO\GetOrderInformation\Item" />
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">

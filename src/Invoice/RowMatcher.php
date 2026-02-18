@@ -179,32 +179,24 @@ class RowMatcher
     public function checkoutDataToArticleList(
         \Magento\Sales\Api\Data\OrderInterface $order
     ): \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList {
-        $orderInformation = $this->getOrderInformation->execute((int)$order->getEntityId());
-        $articles = $this->articleListFactory->create();
+        $getOrderInformation = $this->getOrderInformation->execute((int)$order->getEntityId());
+        $articleList = $this->articleListFactory->create();
 
-        $items = $orderInformation['data']['items'];
-        foreach ($items as $item) {
+        foreach ($getOrderInformation->getItems() as $item) {
             /** @var $item \Webbhuset\CollectorCheckoutSDK\Checkout\Order\Item */
-            $articleId      = $item['articleNumber'];
-            $description    = $item['description'];
-            $qty            = $item['quantity'];
-            $sku            = $item['articleNumber'];
-            $vat            = (float) $item['vatRate'];
-            $unitPrice      = (float) $item['price'];
-
             $article = $this->articleFactory->create([
-                'articleId' => $articleId,
-                'description' => $description,
-                'qty' => $qty,
-                'sku' => $sku,
-                'unitPrice' => $unitPrice,
-                'vat' => $vat
+                'articleId' => $item->getArticleNumber(),
+                'description' => $item->getDescription(),
+                'qty' => $item->getQuantiy(),
+                'sku' => $item->getArticleNumber(),
+                'unitPrice' => $item->getPrice(),
+                'vat' => $item->getVatRate()
             ]);
 
-            $articles->addArticle($article);
+            $articleList->addArticle($article);
         }
 
-        return $articles;
+        return $articleList;
     }
 
     public function convertArticleListToInvoiceRows(
