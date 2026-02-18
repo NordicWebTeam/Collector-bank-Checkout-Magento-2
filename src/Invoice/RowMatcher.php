@@ -183,11 +183,10 @@ class RowMatcher
         $articleList = $this->articleListFactory->create();
 
         foreach ($getOrderInformation->getItems() as $item) {
-            /** @var $item \Webbhuset\CollectorCheckoutSDK\Checkout\Order\Item */
             $article = $this->articleFactory->create([
                 'articleId' => $item->getArticleNumber(),
                 'description' => $item->getDescription(),
-                'qty' => $item->getQuantiy(),
+                'quantity' => $item->getQuantiy(),
                 'sku' => $item->getArticleNumber(),
                 'unitPrice' => $item->getPrice(),
                 'vat' => $item->getVatRate()
