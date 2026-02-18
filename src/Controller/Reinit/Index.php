@@ -3,6 +3,7 @@
 namespace Webbhuset\CollectorCheckout\Controller\Reinit;
 
 use Magento\Framework\Exception\NoSuchEntityException;
+use Webbhuset\CollectorCheckout\Config\ConfigFactory;
 
 class Index extends \Magento\Framework\App\Action\Action
 {
@@ -13,9 +14,9 @@ class Index extends \Magento\Framework\App\Action\Action
     protected $quoteCollection;
 
     /**
-     * @var \Webbhuset\CollectorCheckout\Config\OrderConfig
+     * @var ConfigFactory
      */
-    private $orderConfig;
+    private ConfigFactory $configFactory;
 
     /**
      * @var \Webbhuset\CollectorCheckout\Checkout\Order\ManagerFactory
@@ -28,7 +29,7 @@ class Index extends \Magento\Framework\App\Action\Action
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
         \Webbhuset\CollectorCheckout\Logger\Logger $logger,
         \Webbhuset\CollectorCheckout\Checkout\Order\ManagerFactory $orderManager,
-        \Webbhuset\CollectorCheckout\Config\OrderConfig $orderConfig,
+        \Webbhuset\CollectorCheckout\Config\ConfigFactory $configFactory,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         \Magento\Quote\Model\ResourceModel\Quote\Collection $quoteCollection
     ) {
@@ -39,7 +40,7 @@ class Index extends \Magento\Framework\App\Action\Action
         $this->logger            = $logger;
         $this->quoteRepository   = $quoteRepository;
         $this->quoteCollection   = $quoteCollection;
-        $this->orderConfig       = $orderConfig;
+        $this->configFactory     = $configFactory;
         $this->orderManager      = $orderManager;
     }
 
@@ -61,7 +62,8 @@ class Index extends \Magento\Framework\App\Action\Action
 
         try {
             $order = $this->orderManager->create()->getOrderByPublicToken($publicId);
-            $acknowledged  = $this->orderConfig->getOrderStatusAcknowledged();
+            $config = $this->configFactory->create(['storeId' => $quote->getStoreId()]);
+            $acknowledged  = $config->getOrderStatusAcknowledged();
             if ($order->getStatus() == $acknowledged) {
                 return $this->createResult(
                     'Quote not restored',

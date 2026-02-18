@@ -77,7 +77,7 @@ class Index extends \Magento\Framework\App\Action\Action
         \Webbhuset\CollectorCheckout\QuoteComparerFactory $quoteComparer,
         \Webbhuset\CollectorCheckout\AdapterFactory $adapter,
         \Webbhuset\CollectorCheckout\QuoteUpdater $quoteUpdater,
-        \Webbhuset\CollectorCheckout\Config\QuoteConfigFactory $configFactory,
+        \Webbhuset\CollectorCheckout\Config\ConfigFactory $configFactory,
         \Magento\Quote\Api\CartTotalManagementInterface $cartTotalManagement,
         \Magento\Quote\Api\ShippingMethodManagementInterface $shippingMethodManagement
     ) {
@@ -119,7 +119,7 @@ class Index extends \Magento\Framework\App\Action\Action
             $quote = $quoteManager->getQuoteByPublicToken($reference);
 
             /** @var \Webbhuset\CollectorCheckout\Config\QuoteConfig $config */
-            $config = $this->configFactory->create(['quote' => $quote]);
+            $config = $this->configFactory->create(['storeId' => (int)$quote->getStoreId()]);
             if($config->getIsDeliveryCheckoutActive()
                 && !$config->getIsCustomDeliveryAdapter()) {
                 $carrierCode = !$quote->isVirtual() ? \Webbhuset\CollectorCheckout\Carrier\Collector::GATEWAY_KEY : null;

@@ -21,12 +21,7 @@ class Adapter
     protected $quoteConverter;
 
     /**
-     * @var Config\OrderConfigFactory
-     */
-    protected $orderConfigFactory;
-
-    /**
-     * @var Data\QuoteHandler
+     * @var Config\ConfigFactory
      */
     protected $configFactory;
 
@@ -82,14 +77,12 @@ class Adapter
         \Webbhuset\CollectorCheckout\Data\QuoteHandler $quoteDataHandler,
         \Webbhuset\CollectorCheckout\Data\OrderHandler $orderDataHandler,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
-        \Webbhuset\CollectorCheckout\Config\QuoteConfigFactory $configFactory,
-        \Webbhuset\CollectorCheckout\Config\OrderConfigFactory $orderConfigFactory,
+        \Webbhuset\CollectorCheckout\Config\ConfigFactory $configFactory,
         \Webbhuset\CollectorCheckout\Logger\Logger $logger,
         SessionFactory $sessionFactory,
         CurlWithAccessKeyFactory $curlWithAccessKeyFactory
     ) {
         $this->quoteConverter       = $quoteConverter;
-        $this->orderConfigFactory   = $orderConfigFactory;
         $this->configFactory        = $configFactory;
         $this->quoteDataHandler     = $quoteDataHandler;
         $this->quoteUpdater         = $quoteUpdater;
@@ -171,7 +164,7 @@ class Adapter
         if (!$rate || !$shippingAddress->getShippingMethod()) {
             $this->quoteUpdater->setDefaultShippingMethod($quote);
         }
-        $config = $this->configFactory->create(['quote' => $quote]);
+        $config = $this->configFactory->create(['storeId' => (int)$quote->getStoreId()]);
         if ('collectorCheckoutShippingUpdated' === $eventName
             && $config->getIsDeliveryCheckoutActive()
         ) {
@@ -187,12 +180,13 @@ class Adapter
     }
 
     /**
+     * @param int $storeId
      * @return bool
      */
-    private function isFallbackDeliveryMethodConfigured()
+    private function isFallbackDeliveryMethodConfigured(int $storeId): bool
     {
         /** @var \Webbhuset\CollectorCheckout\Config\QuoteConfig $config */
-        $config = $this->configFactory->create();
+        $config = $this->configFactory->create(['storeId' => $storeId]);
         return $config->getIsDeliveryCheckoutActive()
             && $config->getDeliveryCheckoutFallbackDescription()
             && $config->getDeliveryCheckoutFallbackTitle();
@@ -208,12 +202,12 @@ class Adapter
      */
     public function initialize(\Magento\Quote\Model\Quote $quote) : \Webbhuset\CollectorCheckoutSDK\Session
     {
-        $config = $this->configFactory->create(['quote' => $quote]);
+        $config = $this->configFactory->create(['storeId' => (int)$quote->getStoreId()]);
         $quote = $this->quoteUpdater->setDefaultShippingIfEmpty($quote);
 
         $cart = $this->quoteConverter->getCart($quote);
 
-        if (!$this->isFallbackDeliveryMethodConfigured()
+        if (!$this->isFallbackDeliveryMethodConfigured((int)$quote->getStoreId())
             || $config->getIsCustomDeliveryAdapter()) {
             $fees = $this->quoteConverter->getFees($quote);
         } else {
@@ -276,7 +270,7 @@ class Adapter
 
     public function initWithCustomerType(\Magento\Quote\Model\Quote $quote, int $customerType)
     {
-        $config = $this->configFactory->create(['quote' => $quote]);
+        $config = $this->configFactory->create(['storeId' => (int)$quote->getStoreId()]);
 
         $this->quoteDataHandler->setCustomerType($quote, $customerType);
         if (\Webbhuset\CollectorCheckout\Config\Source\Customer\DefaultType::PRIVATE_CUSTOMERS == $customerType) {
@@ -301,7 +295,7 @@ class Adapter
      */
     public function acquireCheckoutInformationFromQuote(\Magento\Quote\Model\Quote $quote): \Webbhuset\CollectorCheckoutSDK\CheckoutData
     {
-        $config = $this->configFactory->create(['quote' => $quote]);
+        $config = $this->configFactory->create(['storeId' => (int)$quote->getStoreId()]);
         $privateId = $this->quoteDataHandler->getPrivateId($quote);
         $data = $this->acquireCheckoutInformation($config, $privateId);
 
@@ -316,7 +310,7 @@ class Adapter
      */
     public function acquireCheckoutInformationFromOrder(\Magento\Sales\Api\Data\OrderInterface $order): \Webbhuset\CollectorCheckoutSDK\CheckoutData
     {
-        $config = $this->orderConfigFactory->create(['order' => $order]);
+        $config = $this->configFactory->create(['storeId' => (int)$order->getStoreId()]);
         $privateId = $this->orderDataHandler->getPrivateId($order);
 
         $data = $this->acquireCheckoutInformation($config, $privateId);
@@ -352,7 +346,7 @@ class Adapter
     public function updateFees(\Magento\Quote\Model\Quote $quote) : \Webbhuset\CollectorCheckoutSDK\Session
     {
         /** @var \Webbhuset\CollectorCheckout\Config\QuoteConfig $config */
-        $config = $this->configFactory->create(['quote' => $quote]);
+        $config = $this->configFactory->create(['storeId' => (int)$quote->getStoreId()]);
         $adapter = $this->getAdapter($config);
         $collectorSession = $this->sessionFactory->create(['adapter' => $adapter]);
 
@@ -404,7 +398,7 @@ class Adapter
      */
     public function updateCart(\Magento\Quote\Model\Quote $quote) : \Webbhuset\CollectorCheckoutSDK\Session
     {
-        $config = $this->configFactory->create(['quote' => $quote]);
+        $config = $this->configFactory->create(['storeId' => (int)$quote->getStoreId()]);
         $adapter = $this->getAdapter($config);
         $collectorSession = $this->sessionFactory->create(['adapter' => $adapter]);
         $cart = $this->quoteConverter->getCart($quote);

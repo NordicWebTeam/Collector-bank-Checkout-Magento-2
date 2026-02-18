@@ -32,7 +32,7 @@ class GetOrderInformation
     public function execute(string $orderId)
     {
         $order = $this->orderRepository->get($orderId);
-        $config = $this->configFactory->create(['order' => $order]);
+        $config = $this->configFactory->create(['storeId' => (int)$order->getStoreId()]);
         /** @var \Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKey $adapter */
         $adapter = $this->adapter->getAdapter($config);
         $additionalInformation = $order->getPayment()->getAdditionalInformation();

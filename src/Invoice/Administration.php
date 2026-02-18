@@ -12,7 +12,7 @@ use Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKey;
 class Administration
 {
     /**
-     * @var \Webbhuset\CollectorCheckout\Config\OrderConfigFactory
+     * @var \Webbhuset\CollectorCheckout\Config\ConfigFactory
      */
     protected $configFactory;
     /**
@@ -45,7 +45,7 @@ class Administration
     /**
      * Administration constructor.
      *
-     * @param \Webbhuset\CollectorCheckout\Config\OrderConfigFactory $config
+     * @param \Webbhuset\CollectorCheckout\Config\ConfigFactory $config
      * @param \Magento\Sales\Model\Service\InvoiceService           $invoiceService
      * @param Transaction\ManagerFactory                            $transaction
      * @param \Magento\Sales\Model\OrderRepository                  $orderRepository
@@ -53,7 +53,7 @@ class Administration
      * @param \Webbhuset\CollectorCheckout\Logger\Logger        $logger
      */
     public function __construct(
-        \Webbhuset\CollectorCheckout\Config\OrderConfigFactory $configFactory,
+        \Webbhuset\CollectorCheckout\Config\ConfigFactory $configFactory,
         \Magento\Sales\Model\Service\InvoiceService $invoiceService,
         \Webbhuset\CollectorCheckout\Adapter $adapter,
         \Webbhuset\CollectorCheckout\Invoice\Transaction\ManagerFactory $transaction,
@@ -184,8 +184,8 @@ class Administration
     /**
      * Get order config
      *
-     * @param string                                         $orderId
-     * @return \Webbhuset\CollectorCheckout\Config\OrderConfig
+     * @param string $orderId
+     * @return \Webbhuset\CollectorCheckout\Config\Config
      * @throws \Magento\Framework\Exception\InputException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -193,8 +193,7 @@ class Administration
         string $orderId
     ) {
         $order = $this->orderRepository->get($orderId);
-        $magentoStoreId = $order->getStoreId();
-        $config = $this->configFactory->create(['order' => $order, 'magentoStoreId' => $magentoStoreId]);
+        $config = $this->configFactory->create(['storeId' => (int)$order->getStoreId()]);
 
         return $config;
     }

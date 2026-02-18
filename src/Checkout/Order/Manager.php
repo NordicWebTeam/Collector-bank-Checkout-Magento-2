@@ -3,10 +3,10 @@
 namespace Webbhuset\CollectorCheckout\Checkout\Order;
 
 use Magento\Sales\Api\Data\OrderInterface;
-use Webbhuset\CollectorCheckout\Config\OrderConfig;
 use Webbhuset\CollectorCheckoutSDK\Checkout\Purchase\Result as PurchaseResult;
 use Webbhuset\CollectorCheckoutSDK\CheckoutData;
 use Magento\Checkout\Model\Session as CheckoutSession;
+use Webbhuset\CollectorCheckout\Config\Config;
 
 /**
  * Class Manager
@@ -36,7 +36,7 @@ class Manager
      */
     protected $searchCriteriaBuilder;
     /**
-     * @var \Webbhuset\CollectorCheckout\Config\OrderConfigFactory
+     * @var \Webbhuset\CollectorCheckout\Config\ConfigFactory
      */
     protected $configFactory;
     /**
@@ -94,7 +94,7 @@ class Manager
         \Webbhuset\CollectorCheckout\AdapterFactory $collectorAdapter,
         \Magento\Sales\Api\OrderManagementInterface $orderManagement,
         \Webbhuset\CollectorCheckout\Checkout\Order\SetOrderStatus $setOrderStatus,
-        \Webbhuset\CollectorCheckout\Config\OrderConfigFactory $configFactory,
+        \Webbhuset\CollectorCheckout\Config\ConfigFactory $configFactory,
         \Magento\Quote\Model\QuoteManagement $quoteManagement,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTime,
@@ -266,7 +266,7 @@ class Manager
         $collectorBankPrivateId = $this->orderHandler->getPrivateId($order);
         $checkoutAdapter = $this->collectorAdapter->create();
 
-        $config = $this->configFactory->create(['order' => $order]);
+        $config = $this->configFactory->create(['storeId' => (int)$order->getStoreId()]);
         $checkoutData = $checkoutAdapter->acquireCheckoutInformation($config, $collectorBankPrivateId);
 
         $paymentResult = $checkoutData->getPurchase()->getResult()->getResult();
@@ -304,7 +304,7 @@ class Manager
         return $result;
     }
 
-    public function saveAdditionalData(OrderInterface $order, CheckoutData $checkoutData, OrderConfig $config)
+    public function saveAdditionalData(OrderInterface $order, CheckoutData $checkoutData, Config $config)
     {
         if ($config->getIsDeliveryCheckoutActive()) {
             $this->carrierManager->saveShipmentDataOnOrder($order->getId(), $checkoutData);
@@ -341,7 +341,7 @@ class Manager
         CheckoutData $checkoutData
     ):array {
         $orderStatusBefore = $this->orderManagement->getStatus($order->getId());
-        $config = $this->configFactory->create(['order' => $order]);
+        $config = $this->configFactory->create(['storeId' => (int)$order->getStoreId()]);
         $orderStatusAfter  = $config->getOrderStatusAcknowledged();
 
         if ($orderStatusAfter == $orderStatusBefore) {
@@ -395,7 +395,7 @@ class Manager
         CheckoutData $checkoutData
     ):array {
         $orderStatusBefore = $this->orderManagement->getStatus($order->getId());
-        $orderStatusAfter  = $this->configFactory->create(['order' => $order])->getOrderStatusHolded();
+        $orderStatusAfter  = $this->configFactory->create(['storeId' => (int)$order->getStoreId()])->getOrderStatusHolded();
 
         if ($orderStatusBefore == $orderStatusAfter) {
             return [
@@ -446,7 +446,7 @@ class Manager
         CheckoutData $checkoutData
     ):array {
         $orderStatusBefore = $this->orderManagement->getStatus($order->getId());
-        $orderStatusAfter  = $this->configFactory->create(['order' => $order])->getOrderStatusDenied();
+        $orderStatusAfter  = $this->configFactory->create(['storeId' => (int)$order->getStoreId()])->getOrderStatusDenied();
 
         if ($orderStatusBefore == $orderStatusAfter) {
             return [
@@ -464,7 +464,7 @@ class Manager
 
         $this->updateOrderStatus(
             $order,
-            $this->configFactory->create(['order' => $order])->getOrderStatusDenied(),
+            $this->configFactory->create(['storeId' => (int)$order->getStoreId()])->getOrderStatusDenied(),
             \Magento\Sales\Model\Order::STATE_CANCELED
         );
 

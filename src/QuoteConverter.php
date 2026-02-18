@@ -53,7 +53,7 @@ class QuoteConverter
         CustomerRepositoryInterface $customerRepository,
         AddressRepositoryInterface $addressRepository,
         \Magento\Catalog\Helper\Product\Configuration $configurationHelper,
-        \Webbhuset\CollectorCheckout\Config\QuoteConfigFactory $config,
+        \Webbhuset\CollectorCheckout\Config\ConfigFactory $config,
         CartFactory $cartFactory,
         ItemFactory $itemFactory,
         FeesFactory $feesFactory,

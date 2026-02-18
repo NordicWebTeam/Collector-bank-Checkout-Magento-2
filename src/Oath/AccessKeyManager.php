@@ -5,6 +5,7 @@ namespace Webbhuset\CollectorCheckout\Oath;
 
 use Magento\Framework\App\CacheInterface;
 use Webbhuset\CollectorCheckout\Config\StoreConfigFactory;
+use Webbhuset\CollectorCheckout\Config\ConfigFactory;
 use Webbhuset\CollectorCheckoutSDK\Adapter\GetAccessKeyFactory;
 
 class AccessKeyManager
@@ -19,19 +20,22 @@ class AccessKeyManager
     private $cache;
 
     /**
-     * @var StoreConfigFactory
+     * @var ConfigFactory
      */
-    private StoreConfigFactory $storeConfigFactory;
+    private ConfigFactory $configFactory;
 
+    /**
+     * @var GetAccessKeyFactory
+     */
     private GetAccessKeyFactory $getAccessKeyFactory;
 
     public function __construct(
         CacheInterface $cache,
-        StoreConfigFactory $storeConfig,
+        ConfigFactory $configFactory,
         GetAccessKeyFactory $getAccessKeyFactory
     ) {
         $this->cache = $cache;
-        $this->storeConfigFactory = $storeConfig;
+        $this->configFactory = $configFactory;
         $this->getAccessKeyFactory = $getAccessKeyFactory;
     }
 
@@ -55,11 +59,9 @@ class AccessKeyManager
 
     public function generateNewAccessKey(int $storeId)
     {
-        /** @var \Webbhuset\CollectorCheckout\Config\StoreConfig $storeConfig */
-        $storeConfig = $this->storeConfigFactory->create();
-        $storeConfig->setScopeStoreId($storeId);
+        $config = $this->configFactory->create(['storeId' => $storeId]);
         $makeAccessKeyRequest = $this->getAccessKeyFactory->create([
-            'config' => $storeConfig
+            'config' => $config
         ]);
 
         return $makeAccessKeyRequest->getAccessKey();
