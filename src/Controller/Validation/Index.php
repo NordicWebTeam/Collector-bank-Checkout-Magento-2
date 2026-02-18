@@ -118,7 +118,6 @@ class Index extends \Magento\Framework\App\Action\Action
 
             $quote = $quoteManager->getQuoteByPublicToken($reference);
 
-            /** @var \Webbhuset\CollectorCheckout\Config\QuoteConfig $config */
             $config = $this->configFactory->create(['storeId' => (int)$quote->getStoreId()]);
             if($config->getIsDeliveryCheckoutActive()
                 && !$config->getIsCustomDeliveryAdapter()) {

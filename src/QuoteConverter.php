@@ -298,7 +298,6 @@ class QuoteConverter
             return null;
         }
 
-        /** @var \Webbhuset\CollectorCheckout\Config\QuoteConfig $config */
         $config         = $this->config->create();
 
         $id          = (string) $config->getDeliveryCheckoutFallbackTitle();

@@ -185,7 +185,6 @@ class Adapter
      */
     private function isFallbackDeliveryMethodConfigured(int $storeId): bool
     {
-        /** @var \Webbhuset\CollectorCheckout\Config\QuoteConfig $config */
         $config = $this->configFactory->create(['storeId' => $storeId]);
         return $config->getIsDeliveryCheckoutActive()
             && $config->getDeliveryCheckoutFallbackDescription()
@@ -321,7 +320,7 @@ class Adapter
     /**
      * Acquires information from collector bank about the current session from privateId
      *
-     * @param \Webbhuset\CollectorCheckout\Config\QuoteConfig $privateId
+     * @param \Webbhuset\CollectorCheckout\Config\Config $config
      * @param int $privateId
      * @return \Webbhuset\CollectorCheckoutSDK\CheckoutData
      */
@@ -345,7 +344,6 @@ class Adapter
      */
     public function updateFees(\Magento\Quote\Model\Quote $quote) : \Webbhuset\CollectorCheckoutSDK\Session
     {
-        /** @var \Webbhuset\CollectorCheckout\Config\QuoteConfig $config */
         $config = $this->configFactory->create(['storeId' => (int)$quote->getStoreId()]);
         $adapter = $this->getAdapter($config);
         $collectorSession = $this->sessionFactory->create(['adapter' => $adapter]);
@@ -438,7 +436,7 @@ class Adapter
     /**
      * Get adapter
      *
-     * @param \Webbhuset\CollectorCheckout\Config\QuoteConfig $config
+     * @param \Webbhuset\CollectorCheckout\Config\Config $config
      * @return \Webbhuset\CollectorCheckoutSDK\Adapter\AdapterInterface
      */
     public function getAdapter($config) : \Webbhuset\CollectorCheckoutSDK\Adapter\AdapterInterface
