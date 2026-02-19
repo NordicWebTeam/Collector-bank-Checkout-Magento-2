@@ -3,6 +3,8 @@
 namespace Webbhuset\CollectorCheckout\Invoice;
 
 use Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKey;
+use Webbhuset\CollectorCheckout\Api\Data\DTO\Invoice\AdministrationResultInterfaceFactory;
+use Webbhuset\CollectorCheckout\Api\Data\DTO\Invoice\AdministrationResultInterface;
 
 /**
  * Class Administration
@@ -43,6 +45,11 @@ class Administration
     private RowMatcher $rowMatcher;
 
     /**
+     * @var AdministrationResultInterfaceFactory
+     */
+    private AdministrationResultInterfaceFactory $administrationResultFactory;
+
+    /**
      * Administration constructor.
      *
      * @param \Webbhuset\CollectorCheckout\Config\ConfigFactory $config
@@ -61,7 +68,8 @@ class Administration
         \Magento\Sales\Model\OrderRepository $orderRepository,
         \Webbhuset\CollectorCheckout\Invoice\RowMatcher $rowMatcher,
         \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
-        \Webbhuset\CollectorCheckout\Logger\Logger $logger
+        \Webbhuset\CollectorCheckout\Logger\Logger $logger,
+        AdministrationResultInterfaceFactory $administrationResultFactory
     ) {
         $this->configFactory   = $configFactory;
         $this->invoiceService  = $invoiceService;
@@ -72,6 +80,7 @@ class Administration
         $this->adapter = $adapter;
         $this->extractWalleyOrderId = $extractWalleyOrderId;
         $this->rowMatcher = $rowMatcher;
+        $this->administrationResultFactory = $administrationResultFactory;
     }
 
     /**
@@ -79,11 +88,11 @@ class Administration
      *
      * @param string $invoiceNo
      * @param string $orderId
-     * @return array
+     * @return AdministrationResultInterface
      * @throws \Magento\Framework\Exception\InputException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function cancelInvoice(string $invoiceNo, string $orderId):array
+    public function cancelInvoice(string $invoiceNo, string $orderId): AdministrationResultInterface
     {
         $config = $this->getConfig($orderId);
 
@@ -99,7 +108,9 @@ class Administration
             "Invoice cancelled online orderId: {$orderId} invoiceNo: {$walleyOrderId} "
         );
 
-        return ['NewInvoiceNo' => $uniqid];
+        $result = $this->administrationResultFactory->create();
+        $result->setNewInvoiceNumber($uniqid);
+        return $result;
     }
 
     /**
@@ -107,7 +118,7 @@ class Administration
      *
      * @param string $invoiceNo
      * @param string $orderId
-     * @return array
+     * @return AdministrationResultInterface
      * @throws \Magento\Framework\Exception\InputException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -115,7 +126,7 @@ class Administration
         string $invoiceNo,
         \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList $articleList,
         string $orderId
-    ):array {
+    ): AdministrationResultInterface {
         $config = $this->getConfig($orderId);
 
         /** @var \Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKey $adapter */
@@ -127,7 +138,9 @@ class Administration
             "Invoice credited online orderId: {$orderId} invoiceNo: {$walleyOrderId} "
         );
 
-        return ['NewInvoiceNo' => $uniqid];
+        $result = $this->administrationResultFactory->create();
+        $result->setNewInvoiceNumber($uniqid);
+        return $result;
     }
 
 
@@ -136,7 +149,7 @@ class Administration
      *
      * @param string $invoiceNo
      * @param string $orderId
-     * @return array
+     * @return AdministrationResultInterface
      * @throws \Magento\Framework\Exception\InputException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -145,7 +158,7 @@ class Administration
         \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList $articleList,
         string $orderId,
         string $correlationId
-    ):array {
+    ): AdministrationResultInterface {
         $config = $this->getConfig($orderId);
 
         /** @var \Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKey $adapter */
@@ -158,7 +171,9 @@ class Administration
             "Invoice activated online orderId: {$orderId} invoiceNo: {$walleyOrderId} "
         );
 
-        return ['NewInvoiceNo' => $uniq];
+        $result = $this->administrationResultFactory->create();
+        $result->setNewInvoiceNumber($uniq);
+        return $result;
     }
 
 

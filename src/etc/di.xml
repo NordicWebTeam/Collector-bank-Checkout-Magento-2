@@ -109,6 +109,9 @@
     <preference
         for="Webbhuset\CollectorCheckout\Api\Data\DTO\GetOrderInformation\ItemInterface"
         type="Webbhuset\CollectorCheckout\Model\DTO\GetOrderInformation\Item" />
+    <preference
+        for="Webbhuset\CollectorCheckout\Api\Data\DTO\Invoice\AdministrationResultInterface"
+        type="Webbhuset\CollectorCheckout\Model\DTO\Invoice\AdministrationResult" />
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">

@@ -2,6 +2,8 @@
 
 namespace Webbhuset\CollectorCheckout\Invoice\Transaction;
 
+use Webbhuset\CollectorCheckout\Api\Data\DTO\Invoice\AdministrationResultInterface;
+
 class Manager
 {
     /**
@@ -33,37 +35,35 @@ class Manager
      * Adds a transaction to the order
      *
      * @param \Magento\Sales\Api\Data\OrderInterface $order
-     * @param                                        $type
+     * @param string                                 $type
      * @param bool                                   $status
+     * @param ?AdministrationResultInterface        $administrationResult
      */
     public function addTransaction(
         \Magento\Sales\Api\Data\OrderInterface $order,
-        $type,
-        $status = false,
-        $response = []
+        string $type,
+        bool $status = false,
+        ?AdministrationResultInterface $administrationResult = null
     ) {
         $payment = $order->getPayment();
         $txnId = $order->getIncrementId() . "-{$type}";
         $parentTransId = $payment->getLastTransId();
         $paymentData = $payment->getAdditionalInformation();
 
-        if (!empty($response)) {
-            if (isset($response['InvoiceUrl'])) {
-                $paymentData['invoice_url'] = $response['InvoiceUrl'];
-            }
-            if (isset($response['CorrelationId'])) {
-                $txnId = $response['CorrelationId'];
-                $paymentData['purchase_identifier'] = $txnId;
-            }
-            if (isset($response['TotalAmount'])) {
-                $paymentData['amount_to_pay'] = $response['TotalAmount'];
+        if (null !== $administrationResult) {
+            $correlationId = $administrationResult->getCorrelationId();
+            $paymentData['invoice_url'] = $administrationResult->getInvoiceUrl();
+            $paymentData['amount_to_pay'] = $administrationResult->getTotalAmount();
+            if (null !== $correlationId) {
+                $txnId = $correlationId;
+                $paymentData['purchase_identifier'] = $correlationId;
             }
         }
         $payment->setTransactionId($txnId)
             ->setIsTransactionClosed($status)
             ->setTransactionAdditionalInfo(
                 \Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS,
-                $paymentData
+                array_filter($paymentData)
             );
         $transaction = $payment->addTransaction($type, null, true);
         if ($parentTransId) {

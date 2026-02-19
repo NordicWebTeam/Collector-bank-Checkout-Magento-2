@@ -287,7 +287,8 @@ class CollectorBankCommand implements CommandInterface
         $creditMemo = $payment->getCreditmemo();
 
         $adjustmentsInvoiceRows = $this->getAdjustmentsInvoiceRows($creditMemo);
-        if (empty($adjustmentsInvoiceRows) && $this->isFullCredit($creditMemo, $order)) {
+        $fullCredit = $this->isFullCredit($creditMemo, $order);
+        if (empty($adjustmentsInvoiceRows) && $fullCredit) {
             $articleList = $this->rowMatcher->fullCreditMemoToArticleList($order);
         } else {
             $articleList = $this->rowMatcher->creditMemoToArticleList($creditMemo, $order);
@@ -316,6 +317,7 @@ class CollectorBankCommand implements CommandInterface
             $this->transaction->create()->addTransaction(
                 $payment->getOrder(),
                 TransactionInterface::TYPE_REFUND,
+                $fullCredit,
                 $response
             );
         } catch (ResponseError $e) {
