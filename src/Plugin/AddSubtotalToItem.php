@@ -7,10 +7,6 @@ namespace Webbhuset\CollectorCheckout\Plugin;
  */
 class AddSubtotalToItem
 {
-    /**
-     * @var \Magento\Checkout\Helper\Data
-     */
-    protected $checkoutHelper;
     protected $checkoutSession;
     protected $itemPriceRenderer;
 
@@ -21,11 +17,9 @@ class AddSubtotalToItem
      */
     public function __construct(
         \Magento\Checkout\Model\Session $checkoutSession,
-        \Magento\Checkout\Helper\Data $checkoutHelper,
         \Magento\Tax\Block\Item\Price\Renderer $itemPriceRenderer
     ) {
         $this->checkoutSession = $checkoutSession;
-        $this->checkoutHelper = $checkoutHelper;
         $this->itemPriceRenderer = $itemPriceRenderer;
     }
 

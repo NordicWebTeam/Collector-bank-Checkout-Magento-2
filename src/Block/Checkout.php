@@ -35,15 +35,11 @@ class Checkout extends \Magento\Framework\View\Element\Template
      * @param \Magento\Framework\View\Element\Template\Context      $context
      * @param \Magento\Checkout\Model\CompositeConfigProvider       $configProvider
      * @param array                                                 $data
-     * @param \Magento\Framework\Serialize\Serializer\Json|null     $serializer
-     * @param \Magento\Framework\Serialize\SerializerInterface|null $serializerInterface
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Checkout\Model\CompositeConfigProvider $configProvider,
-        array $data = [],
-        \Magento\Framework\Serialize\Serializer\Json $serializer = null,
-        \Magento\Framework\Serialize\SerializerInterface $serializerInterface = null
+        array $data = []
     ) {
         parent::__construct($context, $data);
         $this->jsLayout = isset($data['jsLayout']) && is_array($data['jsLayout']) ? $data['jsLayout'] : [];

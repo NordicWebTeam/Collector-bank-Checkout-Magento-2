@@ -16,10 +16,6 @@ use Webbhuset\CollectorCheckout\Config\Config;
 class Manager
 {
     /**
-     * @var \Magento\Quote\Api\CartManagementInterface
-     */
-    protected $cartManagement;
-    /**
      * @var \Magento\Sales\Model\OrderRepository
      */
     protected $orderRepository;
@@ -87,7 +83,6 @@ class Manager
     protected $checkoutSession;
 
     public function __construct(
-        \Magento\Quote\Api\CartManagementInterface $cartManagement,
         \Magento\Sales\Model\OrderRepository $orderRepository,
         \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
@@ -106,7 +101,6 @@ class Manager
         \Webbhuset\CollectorCheckout\Carrier\Manager $carrierManager,
         CheckoutSession $checkoutSession
     ) {
-        $this->cartManagement        = $cartManagement;
         $this->collectorAdapter      = $collectorAdapter;
         $this->orderRepository       = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;

@@ -32,16 +32,6 @@ class Index extends \Magento\Framework\App\Action\Action
     protected $quoteDataHandler;
 
     /**
-     * @var \Webbhuset\CollectorCheckout\QuoteConverter
-     */
-    protected $quoteConverter;
-
-    /**
-     * @var \Magento\Quote\Api\CartRepositoryInterface
-     */
-    protected $quoteRepository;
-
-    /**
      * @var \Webbhuset\CollectorCheckout\Config\Config
      */
     protected $config;
@@ -68,9 +58,7 @@ class Index extends \Magento\Framework\App\Action\Action
      * @param \Magento\Checkout\Model\Session                       $checkoutSession
      * @param \Webbhuset\CollectorCheckout\Adapter              $collectorAdapter
      * @param \Webbhuset\CollectorCheckout\Data\QuoteHandler    $quoteDataHandler
-     * @param \Webbhuset\CollectorCheckout\QuoteConverter       $quoteConverter
      * @param \Magento\Framework\View\Result\PageFactory            $pageFactory
-     * @param \Magento\Quote\Api\CartRepositoryInterface            $quoteRepository
      * @param \Webbhuset\CollectorCheckout\Config\Config        $config
      * @param \Webbhuset\CollectorCheckout\QuoteValidator       $quoteValidator
      * @param \Webbhuset\CollectorCheckout\QuoteComparerFactory $quoteComparer
@@ -81,9 +69,7 @@ class Index extends \Magento\Framework\App\Action\Action
         \Magento\Checkout\Model\Session $checkoutSession,
         \Webbhuset\CollectorCheckout\Adapter $collectorAdapter,
         \Webbhuset\CollectorCheckout\Data\QuoteHandler $quoteDataHandler,
-        \Webbhuset\CollectorCheckout\QuoteConverter $quoteConverter,
         \Magento\Framework\View\Result\PageFactory $pageFactory,
-        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         \Webbhuset\CollectorCheckout\Config\Config $config,
         \Webbhuset\CollectorCheckout\QuoteValidator $quoteValidator,
         \Webbhuset\CollectorCheckout\QuoteComparerFactory $quoteComparer,
@@ -93,8 +79,6 @@ class Index extends \Magento\Framework\App\Action\Action
         $this->checkoutSession  = $checkoutSession;
         $this->collectorAdapter = $collectorAdapter;
         $this->quoteDataHandler = $quoteDataHandler;
-        $this->quoteConverter   = $quoteConverter;
-        $this->quoteRepository  = $quoteRepository;
         $this->config           = $config;
         $this->quoteValidator   = $quoteValidator;
         $this->quoteComparer    = $quoteComparer;

@@ -33,10 +33,6 @@ class Administration
      * @var \Magento\Sales\Model\OrderRepository
      */
     protected $orderRepository;
-    /**
-     * @var \Webbhuset\CollectorCheckout\Data\OrderHandler
-     */
-    protected $orderHandler;
     private \Webbhuset\CollectorCheckout\Adapter $adapter;
     private \Webbhuset\CollectorCheckout\Data\ExtractWalleyOrderId $extractWalleyOrderId;
     /**
@@ -67,7 +63,6 @@ class Administration
         \Webbhuset\CollectorCheckout\Data\ExtractWalleyOrderId $extractWalleyOrderId,
         \Magento\Sales\Model\OrderRepository $orderRepository,
         \Webbhuset\CollectorCheckout\Invoice\RowMatcher $rowMatcher,
-        \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
         \Webbhuset\CollectorCheckout\Logger\Logger $logger,
         AdministrationResultInterfaceFactory $administrationResultFactory
     ) {
@@ -76,7 +71,6 @@ class Administration
         $this->transaction     = $transaction;
         $this->logger          = $logger;
         $this->orderRepository = $orderRepository;
-        $this->orderHandler    = $orderHandler;
         $this->adapter = $adapter;
         $this->extractWalleyOrderId = $extractWalleyOrderId;
         $this->rowMatcher = $rowMatcher;

@@ -12,11 +12,6 @@ class CreditMemoHandler
      */
     protected $orderHandler;
     /**
-     * @var \Magento\Sales\Api\OrderItemRepositoryInterface
-     */
-    protected $orderItemRepository;
-
-    /**
      * @var \Magento\Sales\Model\OrderRepository
      */
     protected $orderRepository;
@@ -27,11 +22,9 @@ class CreditMemoHandler
      */
     public function __construct(
         \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
-        \Magento\Sales\Api\OrderItemRepositoryInterface $orderItemRepository,
         \Magento\Sales\Model\OrderRepository $orderRepository
     ) {
         $this->orderHandler         = $orderHandler;
-        $this->orderItemRepository  = $orderItemRepository;
         $this->orderRepository      = $orderRepository;
     }
 

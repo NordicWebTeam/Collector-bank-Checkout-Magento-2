@@ -11,7 +11,6 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Result\Page;
 use Magento\Framework\View\Result\PageFactory;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Webbhuset\CollectorCheckout\Adapter;
 use Webbhuset\CollectorCheckout\Checkout\Order\ManagerFactory;
 use Webbhuset\CollectorCheckout\Config\Config;
 use Webbhuset\CollectorCheckout\Data\OrderHandlerFactory;
@@ -30,11 +29,6 @@ class Index extends Action
      * @var PageFactory
      */
     protected $pageFactory;
-
-    /**
-     * @var Adapter
-     */
-    protected $collectorAdapter;
 
     /**
      * @var ManagerFactory
@@ -75,7 +69,6 @@ class Index extends Action
      * Index constructor.
      *
      * @param Context                 $context
-     * @param Adapter                 $collectorAdapter
      * @param ManagerFactory          $orderManager
      * @param OrderHandlerFactory     $orderDataHandler
      * @param PageFactory             $pageFactory
@@ -87,7 +80,6 @@ class Index extends Action
      */
     public function __construct(
         Context $context,
-        Adapter $collectorAdapter,
         ManagerFactory $orderManager,
         OrderHandlerFactory $orderDataHandler,
         PageFactory $pageFactory,
@@ -98,7 +90,6 @@ class Index extends Action
         IframeConfigFactory $iframeConfigFactory
     ) {
         $this->pageFactory      = $pageFactory;
-        $this->collectorAdapter = $collectorAdapter;
         $this->orderManager     = $orderManager;
         $this->orderDataHandler = $orderDataHandler;
         $this->logger           = $logger;

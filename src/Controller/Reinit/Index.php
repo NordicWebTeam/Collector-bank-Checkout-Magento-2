@@ -9,7 +9,6 @@ class Index extends \Magento\Framework\App\Action\Action
 {
     protected $resultJsonFactory;
     protected $checkoutSession;
-    protected $logger;
     protected $quoteRepository;
     protected $quoteCollection;
 
@@ -27,7 +26,6 @@ class Index extends \Magento\Framework\App\Action\Action
         \Magento\Framework\App\Action\Context $context,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
-        \Webbhuset\CollectorCheckout\Logger\Logger $logger,
         \Webbhuset\CollectorCheckout\Checkout\Order\ManagerFactory $orderManager,
         \Webbhuset\CollectorCheckout\Config\ConfigFactory $configFactory,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
@@ -37,7 +35,6 @@ class Index extends \Magento\Framework\App\Action\Action
 
         $this->resultJsonFactory = $resultJsonFactory;
         $this->checkoutSession   = $checkoutSession;
-        $this->logger            = $logger;
         $this->quoteRepository   = $quoteRepository;
         $this->quoteCollection   = $quoteCollection;
         $this->configFactory     = $configFactory;

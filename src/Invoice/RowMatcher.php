@@ -19,15 +19,6 @@ use Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRowsFactory;
 class RowMatcher
 {
     /**
-     * @var \Webbhuset\CollectorCheckout\Data\OrderHandler
-     */
-    protected $orderHandler;
-    /**
-     * @var \Webbhuset\CollectorCheckout\Adapter
-     */
-    protected $adapter;
-
-    /**
      * @var RowMatcher\CreditMemoHandler
      */
     protected $creditMemoHandler;
@@ -46,8 +37,6 @@ class RowMatcher
      * rowMatcher constructor.
      */
     public function __construct(
-        \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
-        \Webbhuset\CollectorCheckout\Adapter $adapter,
         \Webbhuset\CollectorCheckout\Helper\GetMatchingArticles $getMatchingArticles,
         \Webbhuset\CollectorCheckout\Test\GetOrderInformation $getOrderInformation,
         \Webbhuset\CollectorCheckout\Invoice\RowMatcher\CreditMemoHandler $creditMemoHandler,
@@ -57,8 +46,6 @@ class RowMatcher
         InvoiceRowsFactory $invoiceRowsFactory,
         InvoiceRowFactory $invoiceRowFactory
     ) {
-        $this->orderHandler         = $orderHandler;
-        $this->adapter              = $adapter;
         $this->creditMemoHandler    = $creditMemoHandler;
         $this->invoiceHandler       = $invoiceHandler;
         $this->getOrderInformation  = $getOrderInformation;

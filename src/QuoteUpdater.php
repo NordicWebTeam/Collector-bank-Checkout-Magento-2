@@ -12,8 +12,6 @@ use Webbhuset\CollectorCheckoutSDK\Checkout\Customer as SDK;
 
 class QuoteUpdater
 {
-    protected $taxConfig;
-    protected $taxCalculator;
     protected $shippingMethodManagement;
     protected $config;
     protected $session;
@@ -25,8 +23,6 @@ class QuoteUpdater
     private ExtractShippingOptionFee $extractShippingOptionFee;
 
     public function __construct(
-        \Magento\Tax\Model\Config $taxConfig,
-        \Magento\Tax\Model\Calculation $taxCalculator,
         \Webbhuset\CollectorCheckout\Config\ConfigFactory $config,
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepositoryInterface,
         \Magento\Customer\Model\Session $session,
@@ -37,9 +33,7 @@ class QuoteUpdater
         \Magento\Quote\Model\Quote\ShippingAssignment\ShippingAssignmentProcessor $shippingAssignmentProcessor,
         \Magento\Quote\Api\Data\CartExtensionFactory $cartExtensionFactory
     ) {
-        $this->taxConfig                   = $taxConfig;
         $this->config                      = $config;
-        $this->taxCalculator               = $taxCalculator;
         $this->shippingMethodManagement    = $shippingMethodManagement;
         $this->session                     = $session;
         $this->extractShippingOptionFee    = $extractShippingOptionFee;

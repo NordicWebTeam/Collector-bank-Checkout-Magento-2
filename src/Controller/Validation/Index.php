@@ -52,7 +52,6 @@ class Index extends \Magento\Framework\App\Action\Action
     protected $quoteUpdater;
     protected $cartTotalManagement;
     protected $configFactory;
-    protected $shippingMethodManagement;
 
     /**
      * Index constructor.
@@ -78,8 +77,7 @@ class Index extends \Magento\Framework\App\Action\Action
         \Webbhuset\CollectorCheckout\AdapterFactory $adapter,
         \Webbhuset\CollectorCheckout\QuoteUpdater $quoteUpdater,
         \Webbhuset\CollectorCheckout\Config\ConfigFactory $configFactory,
-        \Magento\Quote\Api\CartTotalManagementInterface $cartTotalManagement,
-        \Magento\Quote\Api\ShippingMethodManagementInterface $shippingMethodManagement
+        \Magento\Quote\Api\CartTotalManagementInterface $cartTotalManagement
     ) {
         $this->orderManager    = $orderManager;
         $this->jsonResult      = $jsonResult;
@@ -91,7 +89,6 @@ class Index extends \Magento\Framework\App\Action\Action
         $this->adapter         = $adapter;
         $this->quoteUpdater    = $quoteUpdater;
         $this->cartTotalManagement = $cartTotalManagement;
-        $this->shippingMethodManagement = $shippingMethodManagement;
         $this->configFactory = $configFactory;
 
         parent::__construct($context);

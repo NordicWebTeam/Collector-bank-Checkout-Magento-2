@@ -15,24 +15,9 @@ class Index extends \Magento\Framework\App\Action\Action
     protected $resultJsonFactory;
 
     /**
-     * @var \Magento\Checkout\Model\Session
-     */
-    protected $checkoutSession;
-
-    /**
      * @var \Webbhuset\CollectorCheckout\Adapter
      */
     protected $collectorAdapter;
-
-    /**
-     * @var \Webbhuset\CollectorCheckout\QuoteConverter
-     */
-    protected $quoteConverter;
-
-    /**
-     * @var \Webbhuset\CollectorCheckout\QuoteUpdater
-     */
-    protected $quoteUpdater;
 
     /**
      * @var \Webbhuset\CollectorCheckout\Logger\Logger
@@ -48,20 +33,14 @@ class Index extends \Magento\Framework\App\Action\Action
      * Index constructor.
      *
      * @param \Magento\Framework\App\Action\Context            $context
-     * @param \Magento\Checkout\Model\Session                  $checkoutSession
      * @param \Webbhuset\CollectorCheckout\Adapter         $collectorAdapter
-     * @param \Webbhuset\CollectorCheckout\QuoteConverter  $quoteConverter
-     * @param \Webbhuset\CollectorCheckout\QuoteUpdater    $quoteUpdater
      * @param \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
      * @param \Webbhuset\CollectorCheckout\Logger\Logger   $logger
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
-        \Magento\Checkout\Model\Session $checkoutSession,
         \Webbhuset\CollectorCheckout\Adapter $collectorAdapter,
         \Webbhuset\CollectorCheckout\Checkout\Quote\Manager $quoteManager,
-        \Webbhuset\CollectorCheckout\QuoteConverter $quoteConverter,
-        \Webbhuset\CollectorCheckout\QuoteUpdater $quoteUpdater,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
         \Webbhuset\CollectorCheckout\Logger\Logger $logger
     ) {
@@ -69,10 +48,7 @@ class Index extends \Magento\Framework\App\Action\Action
 
         $this->quoteManager = $quoteManager;
         $this->resultJsonFactory = $resultJsonFactory;
-        $this->checkoutSession   = $checkoutSession;
         $this->collectorAdapter  = $collectorAdapter;
-        $this->quoteConverter    = $quoteConverter;
-        $this->quoteUpdater      = $quoteUpdater;
         $this->logger            = $logger;
     }
 

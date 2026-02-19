@@ -11,21 +11,13 @@ class Manager
      */
     protected $transactionFactory;
     /**
-     * @var \Magento\Sales\Model\Service\InvoiceService
-     */
-    protected $invoiceService;
-
-    /**
      * Manager constructor.
      *
-     * @param \Magento\Sales\Model\Service\InvoiceService $invoiceService
      * @param \Magento\Framework\DB\TransactionFactory    $transactionFactory
      */
     public function __construct(
-        \Magento\Sales\Model\Service\InvoiceService $invoiceService,
         \Magento\Framework\DB\TransactionFactory $transactionFactory
     ) {
-        $this->invoiceService        = $invoiceService;
         $this->transactionFactory    = $transactionFactory;
     }
 
