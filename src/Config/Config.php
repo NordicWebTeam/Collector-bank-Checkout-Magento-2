@@ -720,6 +720,15 @@ class Config extends GatewayConfig implements
     }
 
     /**
+     * @param int|null $storeId
+     * @return void
+     */
+    public function setStoreId(?int $storeId): void
+    {
+        $this->storeId = $storeId;
+    }
+
+    /**
      * Get default language code for the selected country
      *
      * @return string
