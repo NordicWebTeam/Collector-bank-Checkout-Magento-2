@@ -30,7 +30,7 @@ class Administration
      */
     protected $logger;
     /**
-     * @var \Magento\Sales\Model\OrderRepository
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
      */
     protected $orderRepository;
     private \Webbhuset\CollectorCheckout\Adapter $adapter;
@@ -51,7 +51,7 @@ class Administration
      * @param \Webbhuset\CollectorCheckout\Config\ConfigFactory $config
      * @param \Magento\Sales\Model\Service\InvoiceService           $invoiceService
      * @param Transaction\ManagerFactory                            $transaction
-     * @param \Magento\Sales\Model\OrderRepository                  $orderRepository
+     * @param \Magento\Sales\Api\OrderRepositoryInterface           $orderRepository
      * @param \Webbhuset\CollectorCheckout\Data\OrderHandler    $orderHandler
      * @param \Webbhuset\CollectorCheckout\Logger\Logger        $logger
      */
@@ -61,7 +61,7 @@ class Administration
         \Webbhuset\CollectorCheckout\Adapter $adapter,
         \Webbhuset\CollectorCheckout\Invoice\Transaction\ManagerFactory $transaction,
         \Webbhuset\CollectorCheckout\Data\ExtractWalleyOrderId $extractWalleyOrderId,
-        \Magento\Sales\Model\OrderRepository $orderRepository,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Webbhuset\CollectorCheckout\Invoice\RowMatcher $rowMatcher,
         \Webbhuset\CollectorCheckout\Logger\Logger $logger,
         AdministrationResultInterfaceFactory $administrationResultFactory

@@ -50,7 +50,7 @@ class CollectorBankCommand implements CommandInterface
      */
     protected $orderHandler;
     /**
-     * @var \Magento\Sales\Model\OrderRepository
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
      */
     protected $orderRepository;
 
@@ -73,7 +73,7 @@ class CollectorBankCommand implements CommandInterface
         \Webbhuset\CollectorCheckout\Invoice\RowMatcher $rowMatcher,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
-        \Magento\Sales\Model\OrderRepository $orderRepository,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Webbhuset\CollectorCheckout\Invoice\RowMatcher\InvoiceHandler $invoiceHandler
     ) {
         $this->method           = $client['method'];

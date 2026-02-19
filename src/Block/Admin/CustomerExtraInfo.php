@@ -14,7 +14,7 @@ class CustomerExtraInfo
         \Magento\Backend\Block\Template\Context $context,
         \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
         \Magento\Framework\App\Request\Http $request,
-        \Magento\Sales\Model\OrderRepository $orderRepository,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         array $data = []
     ) {
         parent::__construct($context, $data);

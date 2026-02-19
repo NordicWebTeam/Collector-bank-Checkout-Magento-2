@@ -16,7 +16,7 @@ use Webbhuset\CollectorCheckout\Config\Config;
 class Manager
 {
     /**
-     * @var \Magento\Sales\Model\OrderRepository
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
      */
     protected $orderRepository;
     /**
@@ -40,7 +40,7 @@ class Manager
      */
     protected $orderManagement;
     /**
-     * @var \Magento\Quote\Model\QuoteManagement
+     * @var \Magento\Quote\Api\CartManagementInterface
      */
     protected $quoteManagement;
     /**
@@ -83,14 +83,14 @@ class Manager
     protected $checkoutSession;
 
     public function __construct(
-        \Magento\Sales\Model\OrderRepository $orderRepository,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Webbhuset\CollectorCheckout\AdapterFactory $collectorAdapter,
         \Magento\Sales\Api\OrderManagementInterface $orderManagement,
         \Webbhuset\CollectorCheckout\Checkout\Order\SetOrderStatus $setOrderStatus,
         \Webbhuset\CollectorCheckout\Config\ConfigFactory $configFactory,
-        \Magento\Quote\Model\QuoteManagement $quoteManagement,
+        \Magento\Quote\Api\CartManagementInterface $quoteManagement,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTime,
         \Webbhuset\CollectorCheckout\Invoice\AdministrationFactory $invoice,

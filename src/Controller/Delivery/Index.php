@@ -10,7 +10,7 @@ use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Model\ShippingMethodManagement;
+use Magento\Quote\Api\ShippingMethodManagementInterface;
 use Webbhuset\CollectorCheckout\Checkout\Quote\Manager;
 use Webbhuset\CollectorCheckout\Logger\Logger;
 use Webbhuset\CollectorCheckout\Shipment\ConvertToShipment;
@@ -40,7 +40,7 @@ class Index extends Action
     private $request;
 
     /**
-     * @var ShippingMethodManagement
+     * @var ShippingMethodManagementInterface
      */
     private $shippingMethodManagement;
 
@@ -57,7 +57,7 @@ class Index extends Action
     public function __construct(
         Context $context,
         Manager $quoteManager,
-        ShippingMethodManagement $shippingMethodManagement,
+        ShippingMethodManagementInterface $shippingMethodManagement,
         ConvertToShipment $convertToShipment,
         RequestInterface $request,
         CartRepositoryInterface $cartRepository,

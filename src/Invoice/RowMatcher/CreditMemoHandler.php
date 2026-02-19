@@ -12,7 +12,7 @@ class CreditMemoHandler
      */
     protected $orderHandler;
     /**
-     * @var \Magento\Sales\Model\OrderRepository
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
      */
     protected $orderRepository;
 
@@ -22,7 +22,7 @@ class CreditMemoHandler
      */
     public function __construct(
         \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
-        \Magento\Sales\Model\OrderRepository $orderRepository
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
     ) {
         $this->orderHandler         = $orderHandler;
         $this->orderRepository      = $orderRepository;
