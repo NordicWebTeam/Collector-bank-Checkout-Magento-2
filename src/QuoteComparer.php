@@ -26,6 +26,12 @@ class QuoteComparer
         $this->isCustomDeliveryAdapter  = $isCustomDeliveryAdapter;
     }
 
+    /**
+     * @param \Magento\Quote\Api\Data\CartInterface $quote
+     * @param \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
+     * @return bool
+     * @throws QuoteNotInSyncException
+     */
     public function isQuoteInSync(
         \Magento\Quote\Api\Data\CartInterface $quote,
         \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
