@@ -5,6 +5,7 @@ namespace Webbhuset\CollectorCheckout\Controller\Index;
 use Webbhuset\CollectorCheckout\Service\Quote\Initializer;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\View\Result\PageFactory;
+use Webbhuset\CollectorCheckout\Service\Checkout\Storage;
 
 /**
  * Checkout index controller
@@ -27,6 +28,11 @@ class Index extends \Magento\Framework\App\Action\Action
     private Initializer $quoteInitializer;
 
     /**
+     * @var Storage
+     */
+    private Storage $storage;
+
+    /**
      * Index constructor.
      *
      * @param \Magento\Framework\App\Action\Context                 $context
@@ -38,11 +44,13 @@ class Index extends \Magento\Framework\App\Action\Action
         \Magento\Framework\App\Action\Context $context,
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Framework\View\Result\PageFactory $pageFactory,
-        Initializer $quoteInitializer
+        Initializer $quoteInitializer,
+        Storage $storage
     ) {
         $this->pageFactory      = $pageFactory;
         $this->checkoutSession  = $checkoutSession;
         $this->quoteInitializer = $quoteInitializer;
+        $this->storage = $storage;
 
         return parent::__construct($context);
     }
@@ -72,6 +80,7 @@ class Index extends \Magento\Framework\App\Action\Action
             $page->getConfig()->addBodyClass('delivery-checkout');
         }
 
+        $this->storage->setPublicToken($initResult->getPublicToken());
         return $page;
     }
 }

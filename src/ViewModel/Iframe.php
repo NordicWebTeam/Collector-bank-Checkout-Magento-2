@@ -3,12 +3,11 @@
 namespace Webbhuset\CollectorCheckout\ViewModel;
 
 use Magento\Framework\View\Element\Block\ArgumentInterface;
-use Magento\Checkout\Model\Session as CheckoutSession;
-use Webbhuset\CollectorCheckout\Data\QuoteHandler;
 use Webbhuset\CollectorCheckoutSDK\Config\IframeConfigFactory;
 use Webbhuset\CollectorCheckoutSDK\Config\IframeConfig;
 use Webbhuset\CollectorCheckout\Config\ConfigFactory;
 use Webbhuset\CollectorCheckout\Config\Config;
+use Webbhuset\CollectorCheckout\Service\Checkout\Storage;
 use Webbhuset\CollectorCheckoutSDK\Iframe as IframeScript;
 
 /**
@@ -27,14 +26,9 @@ class Iframe implements ArgumentInterface
     private ConfigFactory $configFactory;
 
     /**
-     * @var CheckoutSession
+     * @var Storage
      */
-    private CheckoutSession $checkoutSession;
-
-    /**
-     * @var QuoteHandler
-     */
-    private QuoteHandler $quoteDataHandler;
+    private Storage $storage;
 
     /**
      * @var IframeConfig|null
@@ -49,13 +43,11 @@ class Iframe implements ArgumentInterface
     public function __construct(
         IframeConfigFactory $iframeConfigFactory,
         ConfigFactory $configFactory,
-        CheckoutSession $checkoutSession,
-        QuoteHandler $quoteDataHandler
+        Storage $storage
     ) {
         $this->iframeConfigFactory = $iframeConfigFactory;
         $this->configFactory = $configFactory;
-        $this->checkoutSession = $checkoutSession;
-        $this->quoteDataHandler = $quoteDataHandler;
+        $this->storage = $storage;
     }
 
     /**
@@ -120,11 +112,10 @@ class Iframe implements ArgumentInterface
     private function getIframeConfig(): IframeConfig
     {
         if (null === $this->iframeConfig) {
-            $quote = $this->checkoutSession->getQuote();
-            $publicToken = $this->quoteDataHandler->getPublicToken($quote);
+            $publicToken = $this->storage->getPublicToken();
 
             $this->iframeConfig = $this->iframeConfigFactory->create([
-                'dataToken' => $publicToken,
+                'dataToken' => (string)$publicToken,
                 'dataLang' => $this->getConfig()->getStyleDataLang(),
                 'dataPadding' => $this->getConfig()->getStyleDataPadding(),
                 'dataContainerId' => $this->getConfig()->getStyleDataContainerId(),
