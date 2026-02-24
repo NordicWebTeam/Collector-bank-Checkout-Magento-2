@@ -25,7 +25,7 @@ class CancelInvoice extends Command
     public function __construct(
         State $appState,
         \Webbhuset\CollectorCheckout\Test\CancelInvoice $cancelInvoice,
-        string $name = null
+        ?string $name = null
     ) {
         parent::__construct($name);
 

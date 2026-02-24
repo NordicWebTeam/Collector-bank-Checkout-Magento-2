@@ -25,7 +25,7 @@ class TestInitiateCheckout extends Command
     public function __construct(
         State $appState,
         InitiateCheckout $initiateCheckout,
-        string $name = null
+        ?string $name = null
     ) {
         parent::__construct($name);
 

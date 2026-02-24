@@ -109,7 +109,7 @@ class Initializer
      * @param integer $customerType
      * @return bool
      */
-    private function requireReinit(CartInterface|Quote $quote, ?int $customerType = null)
+    private function requireReinit(CartInterface|Quote $quote, ?int $customerType = null): bool
     {
         $allowed = $this->config->getCustomerTypeAllowed();
         $canChangeCustomerType =

@@ -25,7 +25,7 @@ class PartCredit extends Command
     public function __construct(
         State $appState,
         \Webbhuset\CollectorCheckout\Test\PartCredit $partCredit,
-        string $name = null
+        ?string $name = null
     ) {
         parent::__construct($name);
 

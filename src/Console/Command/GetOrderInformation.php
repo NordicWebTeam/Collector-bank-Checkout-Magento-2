@@ -25,7 +25,7 @@ class GetOrderInformation extends Command
     public function __construct(
         State $appState,
         \Webbhuset\CollectorCheckout\Test\GetOrderInformation $orderInformation,
-        string $name = null
+        ?string $name = null
     ) {
         parent::__construct($name);
 
