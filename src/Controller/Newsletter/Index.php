@@ -10,14 +10,9 @@ namespace Webbhuset\CollectorCheckout\Controller\Newsletter;
 class Index extends \Magento\Framework\App\Action\Action
 {
     /**
-     * @var \Webbhuset\CollectorCheckout\Data\QuoteHandler
+     * @var \Webbhuset\CollectorCheckout\Service\Newsletter\UpdateQuoteSubscription
      */
-    protected $quoteHandler;
-
-    /**
-     * @var \Magento\Checkout\Model\Session
-     */
-    protected $checkoutSession;
+    protected $updateQuoteSubscription;
 
     /**
      * @var \Magento\Framework\Controller\Result\JsonFactory
@@ -25,30 +20,19 @@ class Index extends \Magento\Framework\App\Action\Action
     protected $resultJsonFactory;
 
     /**
-     * @var \Magento\Quote\Api\CartRepositoryInterface
-     */
-    protected $quoteRepository;
-
-    /**
      * Index constructor.
      *
-     * @param \Magento\Framework\App\Action\Context              $context
-     * @param \Magento\Checkout\Model\Session                    $checkoutSession
-     * @param \Webbhuset\CollectorCheckout\Data\QuoteHandler $quoteHandler
-     * @param \Magento\Framework\Controller\Result\JsonFactory   $resultJsonFactory
-     * @param \Magento\Quote\Api\CartRepositoryInterface         $quoteRepository
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Webbhuset\CollectorCheckout\Service\Newsletter\UpdateQuoteSubscription $updateQuoteSubscription
+     * @param \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
-        \Magento\Checkout\Model\Session $checkoutSession,
-        \Webbhuset\CollectorCheckout\Data\QuoteHandler $quoteHandler,
-        \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
-        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
+        \Webbhuset\CollectorCheckout\Service\Newsletter\UpdateQuoteSubscription $updateQuoteSubscription,
+        \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
     ) {
-        $this->checkoutSession   = $checkoutSession;
-        $this->quoteHandler      = $quoteHandler;
+        $this->updateQuoteSubscription = $updateQuoteSubscription;
         $this->resultJsonFactory = $resultJsonFactory;
-        $this->quoteRepository   = $quoteRepository;
 
         parent::__construct($context);
     }
@@ -60,11 +44,8 @@ class Index extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
-        $quote = $this->checkoutSession->getQuote();
-        $subscribe = ('true' == $this->getRequest()->getParam('subscribe')) ? 1 : 0;
-
-        $this->quoteHandler->setNewsletterSubscribe($quote, $subscribe);
-        $this->quoteRepository->save($quote);
+        $subscribe = (string)$this->getRequest()->getParam('subscribe');
+        $this->updateQuoteSubscription->execute($subscribe);
 
         $result = $this->resultJsonFactory->create();
         $result->setData(

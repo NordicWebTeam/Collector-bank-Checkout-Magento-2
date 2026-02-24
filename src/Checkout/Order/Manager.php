@@ -7,6 +7,7 @@ use Webbhuset\CollectorCheckoutSDK\Checkout\Purchase\Result as PurchaseResult;
 use Webbhuset\CollectorCheckoutSDK\CheckoutData;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Webbhuset\CollectorCheckout\Config\Config;
+use Magento\Newsletter\Model\SubscriptionManagerInterface;
 
 /**
  * Class Manager
@@ -60,9 +61,9 @@ class Manager
      */
     protected $logger;
     /**
-     * @var \Magento\Newsletter\Model\SubscriberFactory
+     * @var SubscriptionManagerInterface
      */
-    protected $subscriberFactory;
+    protected SubscriptionManagerInterface $subscriptionManager;
 
     /**
      * @var \Webbhuset\CollectorCheckout\Config\Config|\Webbhuset\CollectorCheckout\Config\ConfigFactory
@@ -73,9 +74,6 @@ class Manager
      * @var SetOrderStatus
      */
     private $setOrderStatus;
-    private $subscriptionManager;
-    private $newsletterModel;
-    private \Magento\Newsletter\Model\Subscriber $newsletterSubscriber;
 
     /**
      * @var CheckoutSession
@@ -94,9 +92,8 @@ class Manager
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTime,
         \Webbhuset\CollectorCheckout\Invoice\AdministrationFactory $invoice,
-        \Magento\Newsletter\Model\Subscriber $newsletterSubscriber,
         \Webbhuset\CollectorCheckout\Logger\Logger $logger,
-        \Magento\Newsletter\Model\SubscriberFactory $subscriberFactory,
+        SubscriptionManagerInterface $subscriptionManager,
         \Webbhuset\CollectorCheckout\Config\Config $config,
         \Webbhuset\CollectorCheckout\Carrier\Manager $carrierManager,
         CheckoutSession $checkoutSession
@@ -112,11 +109,10 @@ class Manager
         $this->dateTime              = $dateTime;
         $this->invoice               = $invoice;
         $this->logger                = $logger;
-        $this->subscriberFactory     = $subscriberFactory;
+        $this->subscriptionManager   = $subscriptionManager;
         $this->config                = $config;
         $this->carrierManager        = $carrierManager;
         $this->setOrderStatus        = $setOrderStatus;
-        $this->newsletterSubscriber  = $newsletterSubscriber;
         $this->checkoutSession  = $checkoutSession;
     }
 
@@ -317,9 +313,22 @@ class Manager
         }
     }
 
-    public function subscribe(OrderInterface $order)
+    /**
+     * @param OrderInterface $order
+     * @return void
+     */
+    private function subscribe(OrderInterface $order): void
     {
-        $this->newsletterSubscriber->subscribe($order->getCustomerEmail());
+        try {
+            $this->subscriptionManager->subscribe((string)$order->getCustomerEmail(), (int)$order->getStoreId());
+        } catch (\Exception $e) {
+            $message = sprintf(
+                'Failed to add newsletter subscription. OrderId: %s, quoteId: %s',
+                $order->getIncrementId(),
+                $order->getQuoteId()
+            );
+            $this->logger->error($message);
+        }
     }
 
     /**
@@ -368,7 +377,7 @@ class Manager
 
 
         if ($this->orderHandler->getNewsletterSubscribe($order)) {
-            $this->subscriberFactory->create()->subscribe($order->getCustomerEmail());
+            $this->subscribe($order);
         }
 
         return [
