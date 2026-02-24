@@ -15,9 +15,9 @@ class Index extends \Magento\Framework\App\Action\Action
     protected $resultJsonFactory;
 
     /**
-     * @var \Webbhuset\CollectorCheckout\Adapter
+     * @var \Webbhuset\CollectorCheckout\Service\Quote\SynchronizeByPublicToken
      */
-    protected $collectorAdapter;
+    protected $synchronizeByPublicToken;
 
     /**
      * @var \Webbhuset\CollectorCheckout\Logger\Logger
@@ -25,31 +25,32 @@ class Index extends \Magento\Framework\App\Action\Action
     protected $logger;
 
     /**
-     * @var \Webbhuset\CollectorCheckout\Checkout\Quote\Manager
+     * @var \Webbhuset\CollectorCheckout\Helper\BuildShippingUpdateResponse
      */
-    protected $quoteManager;
+    protected $buildShippingUpdateResponse;
 
     /**
      * Index constructor.
      *
-     * @param \Magento\Framework\App\Action\Context            $context
-     * @param \Webbhuset\CollectorCheckout\Adapter         $collectorAdapter
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Webbhuset\CollectorCheckout\Service\Quote\SynchronizeByPublicToken $synchronizeByPublicToken
+     * @param \Webbhuset\CollectorCheckout\Helper\BuildShippingUpdateResponse $buildShippingUpdateResponse
      * @param \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
-     * @param \Webbhuset\CollectorCheckout\Logger\Logger   $logger
+     * @param \Webbhuset\CollectorCheckout\Logger\Logger $logger
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
-        \Webbhuset\CollectorCheckout\Adapter $collectorAdapter,
-        \Webbhuset\CollectorCheckout\Checkout\Quote\Manager $quoteManager,
+        \Webbhuset\CollectorCheckout\Service\Quote\SynchronizeByPublicToken $synchronizeByPublicToken,
+        \Webbhuset\CollectorCheckout\Helper\BuildShippingUpdateResponse $buildShippingUpdateResponse,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
         \Webbhuset\CollectorCheckout\Logger\Logger $logger
     ) {
         parent::__construct($context);
 
-        $this->quoteManager = $quoteManager;
+        $this->synchronizeByPublicToken = $synchronizeByPublicToken;
+        $this->buildShippingUpdateResponse = $buildShippingUpdateResponse;
         $this->resultJsonFactory = $resultJsonFactory;
-        $this->collectorAdapter  = $collectorAdapter;
-        $this->logger            = $logger;
+        $this->logger = $logger;
     }
 
     /**
@@ -61,41 +62,20 @@ class Index extends \Magento\Framework\App\Action\Action
     {
         $result = $this->resultJsonFactory->create();
 
-        $publicToken = $this->getRequest()->getParam('publicToken');
+        $publicToken = (string)$this->getRequest()->getParam('publicToken');
         $eventName = $this->getRequest()->getParam('event');
-        $quote = $this->quoteManager->getQuoteByPublicToken($publicToken);
+        $quote = $this->synchronizeByPublicToken->execute($publicToken, $eventName);
 
-        if (!$quote->getId()) {
+        if (null === $quote || !$quote->getId()) {
             $result->setHttpResponseCode(404);
             $this->logger->addCritical(
-                "Quote updater controller - Quote not found quoteId: $publicToken event: $eventName"
-            ,$this->getRequest());
+                "Quote updater controller - Quote not found quoteId: $publicToken event: $eventName",
+                $this->getRequest()
+            );
             return $result->setData(['message' => __('Quote not found')]);
         }
 
-        $quote = $this->collectorAdapter->synchronize($quote, $eventName);
-        $shippingAddress = $quote->getShippingAddress();
-
-        $data = [
-            'postcode' => $shippingAddress->getPostcode(),
-            'region' => $shippingAddress->getRegion(),
-            'country_id' => $shippingAddress->getCountryId(),
-            'shipping_method' => $shippingAddress->getShippingMethod(),
-            'updated' => true
-        ];
-        if ($quote->getShippingAddress()->getShippingMethod() === 'collectorshipping_collectorshipping') {
-            $data['carrier_title'] = $shippingAddress->getShippingDescription();
-            $data['shipping_method_title'] = "";
-            $result->setData($data);
-            return $result;
-        }
-
-        $shippingMethod = $shippingAddress->getShippingRateByCode($shippingAddress->getShippingMethod());
-        if ($shippingMethod && $shippingMethod->getRateId()) {
-            $data['carrier_title'] = $shippingMethod->getCarrierTitle();
-            $data['shipping_method_title'] = $shippingMethod->getMethodTitle();
-        }
-        $result->setData($data);
+        $result->setData($this->buildShippingUpdateResponse->execute($quote));
 
         return $result;
     }
