@@ -708,6 +708,21 @@
                     </field>
 
                 </group>
+                <group
+                    id="debug"
+                    translate="label"
+                    type="text"
+                    sortOrder="50"
+                    showInDefault="1"
+                    showInWebsite="0"
+                    showInStore="0"
+                >
+                    <label>Debug</label>
+                    <field id="download_logs" translate="label" type="button" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Download Logs</label>
+                        <frontend_model>Webbhuset\CollectorCheckout\Block\Admin\System\Config\LogDownload</frontend_model>
+                    </field>
+                </group>
             </group>
         </section>
     </system>
