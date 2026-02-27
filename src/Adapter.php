@@ -4,9 +4,9 @@ namespace Webbhuset\CollectorCheckout;
 
 use Webbhuset\CollectorCheckout\Exception\CanNotInitiateIframeException;
 use Webbhuset\CollectorCheckout\Exception\ResponseErrorOnCartUpdate;
-use Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKeyFactory;
-use Webbhuset\CollectorCheckoutSDK\Session;
-use Webbhuset\CollectorCheckoutSDK\SessionFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Adapter\CurlWithAccessKeyFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Session;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\SessionFactory;
 
 /**
  * Class Adapter
@@ -106,7 +106,7 @@ class Adapter
         if ($publicToken) {
             try {
                 $this->synchronize($quote);
-            } catch (\Webbhuset\CollectorCheckoutSDK\Errors\ResponseError $responseError) {
+            } catch (\Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Errors\ResponseError $responseError) {
                 if (900 == $responseError->getCode()
                     || 404 == $responseError->getCode()) {
                     $collectorSession = $this->initialize($quote);
@@ -195,11 +195,11 @@ class Adapter
      * Initializes a new iframe
      *
      * @param \Magento\Quote\Model\Quote $quote
-     * @return \Webbhuset\CollectorCheckoutSDK\Session
+     * @return \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Session
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function initialize(\Magento\Quote\Model\Quote $quote) : \Webbhuset\CollectorCheckoutSDK\Session
+    public function initialize(\Magento\Quote\Model\Quote $quote) : \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Session
     {
         $config = $this->configFactory->create(['storeId' => (int)$quote->getStoreId()]);
         $quote = $this->quoteUpdater->setDefaultShippingIfEmpty($quote);
@@ -240,7 +240,7 @@ class Adapter
             $quote->collectTotals();
 
             $this->quoteRepository->save($quote);
-        } catch (\Webbhuset\CollectorCheckoutSDK\Errors\ResponseError $e) {
+        } catch (\Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Errors\ResponseError $e) {
             $errorMsg = $e->getErrorLogMessageFromResponse();
             $responseBody = $e->getResponseBody();
             $response = $e->getResponse();
@@ -290,9 +290,9 @@ class Adapter
      * Acquires information from collector bank about the current session
      *
      * @param \Magento\Quote\Model\Quote $quote
-     * @return \Webbhuset\CollectorCheckoutSDK\CheckoutData
+     * @return \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData
      */
-    public function acquireCheckoutInformationFromQuote(\Magento\Quote\Model\Quote $quote): \Webbhuset\CollectorCheckoutSDK\CheckoutData
+    public function acquireCheckoutInformationFromQuote(\Magento\Quote\Model\Quote $quote): \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData
     {
         $config = $this->configFactory->create(['storeId' => (int)$quote->getStoreId()]);
         $privateId = $this->quoteDataHandler->getPrivateId($quote);
@@ -305,9 +305,9 @@ class Adapter
      * Acquires information from collector bank from an order
      *
      * @param \Magento\Quote\Model\Quote $quote
-     * @return \Webbhuset\CollectorCheckoutSDK\CheckoutData
+     * @return \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData
      */
-    public function acquireCheckoutInformationFromOrder(\Magento\Sales\Api\Data\OrderInterface $order): \Webbhuset\CollectorCheckoutSDK\CheckoutData
+    public function acquireCheckoutInformationFromOrder(\Magento\Sales\Api\Data\OrderInterface $order): \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData
     {
         $config = $this->configFactory->create(['storeId' => (int)$order->getStoreId()]);
         $privateId = $this->orderDataHandler->getPrivateId($order);
@@ -322,9 +322,9 @@ class Adapter
      *
      * @param \Webbhuset\CollectorCheckout\Config\Config $config
      * @param int $privateId
-     * @return \Webbhuset\CollectorCheckoutSDK\CheckoutData
+     * @return \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData
      */
-    public function acquireCheckoutInformation($config, $privateId): \Webbhuset\CollectorCheckoutSDK\CheckoutData
+    public function acquireCheckoutInformation($config, $privateId): \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData
     {
         $adapter = $this->getAdapter($config);
 
@@ -338,11 +338,11 @@ class Adapter
      * Update fees in the collector bank session
      *
      * @param \Magento\Quote\Model\Quote $quote
-     * @return \Webbhuset\CollectorCheckoutSDK\Session
+     * @return \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Session
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function updateFees(\Magento\Quote\Model\Quote $quote) : \Webbhuset\CollectorCheckoutSDK\Session
+    public function updateFees(\Magento\Quote\Model\Quote $quote) : \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Session
     {
         $config = $this->configFactory->create(['storeId' => (int)$quote->getStoreId()]);
         $adapter = $this->getAdapter($config);
@@ -360,7 +360,7 @@ class Adapter
                 $collectorSession->setPrivateId($privateId)
                     ->updateFees($fees);
             }
-        } catch (\Webbhuset\CollectorCheckoutSDK\Errors\ResponseError $e) {
+        } catch (\Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Errors\ResponseError $e) {
             $errorMsg = $e->getErrorLogMessageFromResponse();
             $responseBody = $e->getResponseBody();
             $response = $e->getResponse();
@@ -390,11 +390,11 @@ class Adapter
      *
      *
      * @param \Magento\Quote\Model\Quote $quote
-     * @return \Webbhuset\CollectorCheckoutSDK\Session
+     * @return \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Session
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function updateCart(\Magento\Quote\Model\Quote $quote) : \Webbhuset\CollectorCheckoutSDK\Session
+    public function updateCart(\Magento\Quote\Model\Quote $quote) : \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Session
     {
         $config = $this->configFactory->create(['storeId' => (int)$quote->getStoreId()]);
         $adapter = $this->getAdapter($config);
@@ -407,7 +407,7 @@ class Adapter
                 $collectorSession->setPrivateId($privateId)
                     ->updateCart($cart);
             }
-        } catch (\Webbhuset\CollectorCheckoutSDK\Errors\ResponseError $e) {
+        } catch (\Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Errors\ResponseError $e) {
             $errorMsg = $e->getErrorLogMessageFromResponse();
             $responseBody = $e->getResponseBody();
             $response = $e->getResponse();
@@ -437,9 +437,9 @@ class Adapter
      * Get adapter
      *
      * @param \Webbhuset\CollectorCheckout\Config\Config $config
-     * @return \Webbhuset\CollectorCheckoutSDK\Adapter\AdapterInterface
+     * @return \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Adapter\AdapterInterface
      */
-    public function getAdapter($config) : \Webbhuset\CollectorCheckoutSDK\Adapter\AdapterInterface
+    public function getAdapter($config) : \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Adapter\AdapterInterface
     {
 
         return $this->curlWithAccessKeyFactory->create(['config' => $config]);

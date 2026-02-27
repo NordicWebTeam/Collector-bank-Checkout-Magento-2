@@ -8,7 +8,7 @@ use Magento\Framework\Exception\State\InputMismatchException;
 use Magento\Quote\Model\Quote as Quote;
 use Webbhuset\CollectorCheckout\Data\ExtractShippingOptionFee;
 use Webbhuset\CollectorCheckout\Shipment\DeliveryCheckoutData;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Customer as SDK;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Customer as SDK;
 
 class QuoteUpdater
 {
@@ -46,7 +46,7 @@ class QuoteUpdater
 
     public function setQuoteData(
         Quote $quote,
-        \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
+        \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData
     ) : Quote {
         $customer                   = $checkoutData->getCustomer();
         $collectorInvoiceAddress    = $customer->getInvoiceAddress();
@@ -118,7 +118,7 @@ class QuoteUpdater
     }
 
     public function isCustomDeliveryAdapter(
-        \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
+        \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData
     ): bool {
         $shipment = $checkoutData->getShipping();
         if (!$shipment) {
@@ -136,7 +136,7 @@ class QuoteUpdater
     }
 
     public function getCustomDeliveryShippingMethod(
-        \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
+        \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData
     ): ?string {
         if (!$this->isCustomDeliveryAdapter($checkoutData)) {
 
@@ -150,7 +150,7 @@ class QuoteUpdater
 
     public function setDeliveryCheckoutData(
         Quote $quote,
-        \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
+        \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData
     ) {
         $shipment = $checkoutData->getShipping()->getData();
         if (!isset($shipment["shipments"][0]['shippingChoice']['id'])) {
@@ -227,7 +227,7 @@ class QuoteUpdater
 
     public function setCustomerData(
         Quote $quote,
-        \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
+        \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData
     ) : Quote {
         $customer = $checkoutData->getCustomer();
         $customerAddress = $customer->getInvoiceAddress();

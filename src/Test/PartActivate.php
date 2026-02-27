@@ -40,7 +40,7 @@ class PartActivate
     {
         $order = $this->orderRepository->get($orderId);
         $config = $this->configFactory->create(['storeId' => (int)$order->getStoreId()]);
-        /** @var \Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKey $adapter */
+        /** @var \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Adapter\CurlWithAccessKey $adapter */
         $adapter = $this->adapter->getAdapter($config);
         $additionalInformation = $order->getPayment()->getAdditionalInformation();
         $walleyOrderId = $additionalInformation['order_id'];

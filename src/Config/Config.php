@@ -10,8 +10,8 @@ use Magento\Store\Model\StoreManagerInterface;
  * Config accessor service
  */
 class Config extends GatewayConfig implements
-    \Webbhuset\CollectorCheckoutSDK\Config\ConfigInterface,
-    \Webbhuset\CollectorPaymentSDK\Config\ConfigInterface
+    \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Config\ConfigInterface,
+    \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Config\ConfigInterface
 {
     /**
      * Payment method code also used as part of payment config path:

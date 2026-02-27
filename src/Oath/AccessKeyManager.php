@@ -6,7 +6,7 @@ namespace Webbhuset\CollectorCheckout\Oath;
 use Magento\Framework\App\CacheInterface;
 use Webbhuset\CollectorCheckout\Config\StoreConfigFactory;
 use Webbhuset\CollectorCheckout\Config\ConfigFactory;
-use Webbhuset\CollectorCheckoutSDK\Adapter\GetAccessKeyFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Adapter\GetAccessKeyFactory;
 
 class AccessKeyManager
 {

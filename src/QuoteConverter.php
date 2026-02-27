@@ -9,16 +9,16 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
 use Webbhuset\CollectorCheckout\Config\Source\Customer\DefaultType;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Cart;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Cart\Item;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Customer\InitializeCustomer;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Fees;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Fees\Fee;
-use Webbhuset\CollectorCheckoutSDK\Checkout\CartFactory;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Cart\ItemFactory;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Customer\InitializeCustomerFactory;
-use Webbhuset\CollectorCheckoutSDK\Checkout\FeesFactory;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Fees\FeeFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Cart;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Cart\Item;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Customer\InitializeCustomer;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Fees;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Fees\Fee;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\CartFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Cart\ItemFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Customer\InitializeCustomerFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\FeesFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Fees\FeeFactory;
 
 class QuoteConverter
 {

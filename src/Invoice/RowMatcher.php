@@ -2,14 +2,14 @@
 
 namespace Webbhuset\CollectorCheckout\Invoice;
 
-use Webbhuset\CollectorPaymentSDK\Invoice\Article\Article as Article;
-use Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList as ArticleList;
-use Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRow;
-use Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRows;
-use Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleFactory;
-use Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleListFactory;
-use Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRowFactory;
-use Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRowsFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\Article as Article;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList as ArticleList;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Rows\InvoiceRow;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Rows\InvoiceRows;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleListFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Rows\InvoiceRowFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Rows\InvoiceRowsFactory;
 
 /**
  * Class RowMatcher
@@ -66,7 +66,7 @@ class RowMatcher
     public function invoiceToArticleList(
         \Magento\Sales\Model\Order\Invoice $invoice,
         \Magento\Sales\Api\Data\OrderInterface $order
-    ): \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList {
+    ): \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList {
         $checkoutDataArticleList = $this->checkoutDataToArticleList($order);
 
         $matchingArticles = $this->articleListFactory->create();
@@ -102,7 +102,7 @@ class RowMatcher
      */
     public function fullInvoiceToArticleList(
         \Magento\Sales\Api\Data\OrderInterface $order
-    ): \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList {
+    ): \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList {
         return $this->checkoutDataToArticleList($order);
     }
 
@@ -116,7 +116,7 @@ class RowMatcher
     public function creditMemoToArticleList(
         \Magento\Sales\Model\Order\Creditmemo $creditMemo,
         \Magento\Sales\Api\Data\OrderInterface $order
-    ): \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList {
+    ): \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList {
         $checkoutDataArticleList = $this->checkoutDataToArticleList($order);
 
         $matchingArticles = $this->articleListFactory->create();
@@ -153,7 +153,7 @@ class RowMatcher
      */
     public function fullCreditMemoToArticleList(
         \Magento\Sales\Api\Data\OrderInterface $order
-    ): \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList {
+    ): \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList {
         return $this->checkoutDataToArticleList($order);
     }
 
@@ -165,7 +165,7 @@ class RowMatcher
      */
     public function checkoutDataToArticleList(
         \Magento\Sales\Api\Data\OrderInterface $order
-    ): \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList {
+    ): \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList {
         $getOrderInformation = $this->getOrderInformation->execute((int)$order->getEntityId());
         $articleList = $this->articleListFactory->create();
 
@@ -200,7 +200,7 @@ class RowMatcher
     public function adjustmentToInvoiceRows(
         $adjustmentFee,
         $taxPercent = 0
-    ): \Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRow {
+    ): \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Rows\InvoiceRow {
         if ($adjustmentFee > 0) {
             $articleId = __('Discount');
             $description = __('Discount');

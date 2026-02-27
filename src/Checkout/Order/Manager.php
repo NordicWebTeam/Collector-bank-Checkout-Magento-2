@@ -3,8 +3,8 @@
 namespace Webbhuset\CollectorCheckout\Checkout\Order;
 
 use Magento\Sales\Api\Data\OrderInterface;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Purchase\Result as PurchaseResult;
-use Webbhuset\CollectorCheckoutSDK\CheckoutData;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Purchase\Result as PurchaseResult;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Webbhuset\CollectorCheckout\Config\Config;
 use Magento\Newsletter\Model\SubscriptionManagerInterface;
@@ -628,11 +628,11 @@ class Manager
      * Adds payment information
      *
      * @param \Magento\Sales\Api\Data\OrderPaymentInterface $payment
-     * @param \Webbhuset\CollectorCheckoutSDK\Checkout\Purchase  $purchaseData
+     * @param \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Purchase  $purchaseData
      */
     protected function addPaymentInformation(
         \Magento\Sales\Api\Data\OrderPaymentInterface $payment,
-        \Webbhuset\CollectorCheckoutSDK\Checkout\Purchase $purchaseData
+        \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Purchase $purchaseData
     ) {
         $info = [
             'method_title'            => \Webbhuset\CollectorCheckout\Gateway\Config::PAYMENT_METHOD_NAME,

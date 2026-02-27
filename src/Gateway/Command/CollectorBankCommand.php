@@ -6,9 +6,9 @@ use Magento\Payment\Gateway\CommandInterface as CommandInterface;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Webbhuset\CollectorCheckout\Gateway\Config;
-use Webbhuset\CollectorPaymentSDK\Errors\ResponseError as ResponseError;
-use Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList;
-use Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRow;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Errors\ResponseError as ResponseError;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Rows\InvoiceRow;
 
 /**
  * Class CollectorBankCommand

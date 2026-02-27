@@ -3,7 +3,7 @@
 namespace Webbhuset\CollectorCheckout\Invoice\RowMatcher;
 
 use Webbhuset\CollectorCheckout\Helper\ProductType;
-use Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList as ArticleList;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList as ArticleList;
 
 class CreditMemoHandler
 {

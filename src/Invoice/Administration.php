@@ -2,7 +2,7 @@
 
 namespace Webbhuset\CollectorCheckout\Invoice;
 
-use Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKey;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Adapter\CurlWithAccessKey;
 use Webbhuset\CollectorCheckout\Api\Data\DTO\Invoice\AdministrationResultInterfaceFactory;
 use Webbhuset\CollectorCheckout\Api\Data\DTO\Invoice\AdministrationResultInterface;
 
@@ -90,7 +90,7 @@ class Administration
     {
         $config = $this->getConfig($orderId);
 
-        /** @var \Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKey $adapter */
+        /** @var \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Adapter\CurlWithAccessKey $adapter */
         $adapter = $this->adapter->getAdapter($config);
         $walleyOrderId = $this->extractWalleyOrderId->execute((int)$orderId);
         $order = $this->orderRepository->get($orderId);
@@ -118,12 +118,12 @@ class Administration
      */
     public function partCreditInvoice(
         string $invoiceNo,
-        \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList $articleList,
+        \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList $articleList,
         string $orderId
     ): AdministrationResultInterface {
         $config = $this->getConfig($orderId);
 
-        /** @var \Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKey $adapter */
+        /** @var \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Adapter\CurlWithAccessKey $adapter */
         $adapter = $this->adapter->getAdapter($config);
         $walleyOrderId = $this->extractWalleyOrderId->execute((int)$orderId);
         $uniqid = uniqid();
@@ -149,13 +149,13 @@ class Administration
      */
     public function partActivateInvoice(
         string $invoiceNo,
-        \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList $articleList,
+        \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList $articleList,
         string $orderId,
         string $correlationId
     ): AdministrationResultInterface {
         $config = $this->getConfig($orderId);
 
-        /** @var \Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKey $adapter */
+        /** @var \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Adapter\CurlWithAccessKey $adapter */
         $adapter = $this->adapter->getAdapter($config);
         $walleyOrderId = $this->extractWalleyOrderId->execute((int)$orderId);
         $uniq = uniqid();

@@ -3,12 +3,12 @@
 namespace Webbhuset\CollectorCheckout\ViewModel;
 
 use Magento\Framework\View\Element\Block\ArgumentInterface;
-use Webbhuset\CollectorCheckoutSDK\Config\IframeConfigFactory;
-use Webbhuset\CollectorCheckoutSDK\Config\IframeConfig;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Config\IframeConfigFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Config\IframeConfig;
 use Webbhuset\CollectorCheckout\Config\ConfigFactory;
 use Webbhuset\CollectorCheckout\Config\Config;
 use Webbhuset\CollectorCheckout\Service\Checkout\Storage;
-use Webbhuset\CollectorCheckoutSDK\Iframe as IframeScript;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Iframe as IframeScript;
 
 /**
  * View model for rendering checkout iframe
