@@ -75,7 +75,7 @@ class Initializer
      * @param int|null $customerType
      * @return Result
      */
-    public function execute(CartInterface|Quote $quote, ?int $customerType = null): Result
+    public function execute(CartInterface $quote, ?int $customerType = null): Result
     {
         $result = $this->resultFactory->create();
         if (!$this->quoteComparer->isCurrencyMatching()) {
@@ -109,7 +109,7 @@ class Initializer
      * @param integer $customerType
      * @return bool
      */
-    private function requireReinit(CartInterface|Quote $quote, ?int $customerType = null): bool
+    private function requireReinit(CartInterface $quote, ?int $customerType = null): bool
     {
         $allowed = $this->config->getCustomerTypeAllowed();
         $canChangeCustomerType =

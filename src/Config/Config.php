@@ -745,7 +745,7 @@ class Config extends GatewayConfig implements
      * @param string $field
      * @return mixed
      */
-    private function getConfigurationSectionValue(string $field): mixed
+    private function getConfigurationSectionValue(string $field)
     {
         return $this->getValue(
             sprintf('%s/%s', self::GROUP_CONFIGURATION, $field),
@@ -757,7 +757,7 @@ class Config extends GatewayConfig implements
      * @param string $field
      * @return mixed
      */
-    private function getDeliverycheckoutSectionValue(string $field): mixed
+    private function getDeliverycheckoutSectionValue(string $field)
     {
         return $this->getValue(
             sprintf('%s/%s', self::GROUP_DELIVERYCHECKOUT, $field),
@@ -769,7 +769,7 @@ class Config extends GatewayConfig implements
      * @param string $field
      * @return mixed
      */
-    private function getBaseSectionValue(string $field): mixed
+    private function getBaseSectionValue(string $field)
     {
         return $this->getValue(
             $field,
