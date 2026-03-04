@@ -17,4 +17,5 @@ interface ConfigInterface
     public function getNotificationUri() : string;
     public function getValidationUri(): string;
     public function getProfileName(): string;
+    public function getCustomFields(): array;
 }
