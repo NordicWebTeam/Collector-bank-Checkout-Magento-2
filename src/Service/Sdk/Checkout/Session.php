@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Webbhuset\CollectorCheckout\Service\Sdk\Checkout;
 
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Errors\ValidationError;
 use Webbhuset\CollectorCheckout\Config\Source\Customer\DefaultType;
 use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Adapter\AdapterInterface;
 use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Cart;

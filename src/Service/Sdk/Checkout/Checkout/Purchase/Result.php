@@ -38,7 +38,7 @@ class Result
         if (!in_array($result, $this->validResults)) {
             $validResultsString = implode(', ', $this->validResults);
             $msg = "Status \"{$result}\" must be one of {$validResultsString}";
-            throw new \ValidationError($msg);
+            throw new ValidationError($msg);
         }
 
         $this->result = $result;
