@@ -13,6 +13,7 @@ class Index extends \Magento\Framework\App\Action\Action
      * @var \Webbhuset\CollectorCheckout\Checkout\Order\ManagerFactory
      */
     protected $orderManager;
+
     /**
      * @var \Magento\Framework\Controller\Result\JsonFactory
      */

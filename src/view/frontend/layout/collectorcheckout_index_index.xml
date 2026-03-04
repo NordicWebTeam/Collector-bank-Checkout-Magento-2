@@ -6,7 +6,7 @@
 
         <referenceContainer name="checkout.cart.items">
             <block class="Webbhuset\CollectorCheckout\Block\Checkout\CustomerTypeSwitcher" name="collectorbank_checkout_customer_type" template="Webbhuset_CollectorCheckout::checkout/customerTypeSwitcher.phtml" cacheable="false" before="-" />
-            <block class="Webbhuset\CollectorCheckout\Block\Checkout" name="collectorbank_index_index" template="Magento_Checkout::onepage.phtml" cacheable="false" after="collectorbank_checkout_customer_type">
+            <block name="collectorbank_index_index" template="Magento_Checkout::onepage.phtml" cacheable="false" after="collectorbank_checkout_customer_type">
                 <arguments>
                     <argument name="jsLayout" xsi:type="array">
                         <item name="components" xsi:type="array">
@@ -27,6 +27,7 @@
                             </item>
                         </item>
                     </argument>
+                    <argument name="serialized_checkout_config" xsi:type="helper" helper="Webbhuset\CollectorCheckout\ViewModel\CheckoutConfigProvider::getSerializedCheckoutConfig"></argument>
                 </arguments>
             </block>
             <block class="Magento\Framework\View\Element\Template" name="collector-discount" after="checkout.cart.shipping" template="Webbhuset_CollectorCheckout::cart/discount.phtml">
@@ -72,7 +73,11 @@
                     </argument>
                 </arguments>
             </block>
-            <block class="Webbhuset\CollectorCheckout\Block\Checkout" name="collectorbank_checkout_iframe" template="Webbhuset_CollectorCheckout::iframe.phtml" cacheable="false" />
+            <block name="collectorbank_checkout_iframe" template="Webbhuset_CollectorCheckout::iframe.phtml" cacheable="false">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Webbhuset\CollectorCheckout\ViewModel\Iframe</argument>
+                </arguments>
+            </block>
         </referenceContainer>
         <referenceBlock name="checkout.cart.form" remove="true"/>
         <referenceBlock class="Magento\Checkout\Block\Cart\Coupon" name="checkout.cart.coupon" remove="true"/>
@@ -102,6 +107,7 @@
                         </item>
                     </item>
                 </argument>
+                <argument name="view_model" xsi:type="object">Webbhuset\CollectorCheckout\ViewModel\CheckoutConfigProvider</argument>
             </arguments>
         </referenceBlock>
         <referenceBlock name="checkout.cart.methods.bottom" remove="true" />

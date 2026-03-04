@@ -3,56 +3,113 @@
 namespace Webbhuset\CollectorCheckout\Config;
 
 use Webbhuset\CollectorCheckout\Config\Source\Checkout\Version;
+use Magento\Payment\Gateway\Config\Config as GatewayConfig;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
- * Class Config
- *
- * @package Webbhuset\CollectorCheckout\Config
+ * Config accessor service
  */
-class Config implements
-    \Webbhuset\CollectorCheckoutSDK\Config\ConfigInterface,
-    \Webbhuset\CollectorPaymentSDK\Config\ConfigInterface
+class Config extends GatewayConfig implements
+    \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Config\ConfigInterface,
+    \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Config\ConfigInterface
 {
     /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     * Payment method code also used as part of payment config path:
+     * payment/{method_code}/{field}
      */
-    protected $scopeConfig;
+    const METHOD_CODE = 'collectorbank_checkout';
+
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * Group keys
      */
-    protected $storeManager;
+    const GROUP_CONFIGURATION = 'configuration';
+
+    const GROUP_DELIVERYCHECKOUT = 'deliverycheckout';
+
     /**
-     * @var \Magento\Checkout\Model\Session
+     * Field keys
      */
-    protected $checkoutSession;
+    // Base group
+    const BASE_FIELD_ORDER_STATUS = 'order_status';
+
+    // Configuration group
+    const CONFIG_FIELD_ACTIVE = 'active';
+    const CONFIG_FIELD_DELETE_PENDING_ORDERS = 'delete_pending_orders';
+    const CONFIG_FIELD_CREATE_CUSTOMER_ACCOUNT = 'create_customer_account';
+    const CONFIG_FIELD_COUNTRY_CODE = 'country_code';
+    const CONFIG_FIELD_CUSTOMER_TYPE = 'customer_type';
+    const CONFIG_FIELD_DEFAULT_CUSTOMER_TYPE = 'default_customer_type';
+    const CONFIG_FIELD_TEST_MODE = 'test_mode';
+    const CONFIG_FIELD_CLIENT_ID = 'client_id';
+    const CONFIG_FIELD_CLIENT_SECRET = 'client_secret';
+    const CONFIG_FIELD_TEST_MODE_CLIENT_SECRET = 'test_mode_client_secret';
+    const CONFIG_FIELD_TEST_MODE_CLIENT_ID = 'test_mode_client_id';
+    const CONFIG_FIELD_TERMS_URL = 'terms_url';
+    const CONFIG_FIELD_ORDER_ACCEPTED_STATUS = 'order_accepted_status';
+    const CONFIG_FIELD_ORDER_HOLDED_STATUS = 'order_holded_status';
+    const CONFIG_FIELD_ORDER_DENIED_STATUS = 'order_denied_status';
+    const CONFIG_FIELD_PROFILE_NAME = 'profile_name';
+    const CONFIG_FIELD_PROFILE_NAME_B2B = 'profile_name_b2b';
+    const CONFIG_FIELD_B2C = 'b2c';
+    const CONFIG_FIELD_B2B = 'b2b';
+    const CONFIG_FIELD_TEST_MODE_B2C = 'test_mode_b2c';
+    const CONFIG_FIELD_TEST_MODE_B2B = 'test_mode_b2b';
+    const CONFIG_FIELD_CUSTOM_BASE_URL = 'custom_base_url';
+    const CONFIG_FIELD_NEWSLETTER = 'newsletter';
+    const CONFIG_FIELD_NEWSLETTER_TEXT = 'newsletter_text';
+    const CONFIG_FIELD_COMMENT = 'comment';
+    const CONFIG_FIELD_COMMENT_TEXT = 'comment_text';
+    const CONFIG_FIELD_STYLE_DATA_LANG = 'style_data_lang';
+    const CONFIG_FIELD_STYLE_DATA_PADDING = 'style_data_padding';
+    const CONFIG_FIELD_STYLE_DATA_CONTAINER_ID = 'style_data_container_id';
+    const CONFIG_FIELD_STYLE_DATA_ACTION_COLOR = 'style_data_action_color';
+    const CONFIG_FIELD_STYLE_DATA_ACTION_TEXT_COLOR = 'style_data_action_text_color';
+
+    // Deliverycheckout group
+    const DELIVERYCHECKOUT_FIELD_ACTIVE = 'active';
+    const DELIVERYCHECKOUT_FIELD_CUSTOM_DELIVERY_ADAPTER = 'custom_delivery_adapter';
+    const DELIVERYCHECKOUT_FIELD_FALLBACK_TITLE = 'fallback_title';
+    const DELIVERYCHECKOUT_FIELD_FALLBACK_DESCRIPTION = 'fallback_description';
+    const DELIVERYCHECKOUT_FIELD_FALLBACK_PRICE = 'fallback_price';
+
     /**
-     * @var \Webbhuset\CollectorCheckout\Data\OrderHandler
+     * Url Keys
      */
-    protected $orderDataHandler;
+    const URL_KEY_NOTIFICATION = 'collectorbank/notification/index/reference/{checkout.publictoken}';
+    const URL_KEY_VALIDATION = 'collectorbank/validation/index/reference/{checkout.publictoken}';
+
     /**
-     * @var int $storeId
+     * @var StoreManagerInterface
      */
-    protected $storeId;
+    private StoreManagerInterface $storeManager;
+
     /**
      * @var Source\Country\Country
      */
-    protected $countryData;
+    private $countryData;
+
     /**
-     * @var int
+     * @var ?int $storeId
      */
-    protected $magentoStoreId = null;
+    private $storeId = null;
+
+    /**
+     * @var \Webbhuset\CollectorCheckout\Oath\AccessKeyManager
+     */
     private \Webbhuset\CollectorCheckout\Oath\AccessKeyManager $accessKeyManager;
 
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Webbhuset\CollectorCheckout\Config\Source\Country\Country $countryData,
-        \Webbhuset\CollectorCheckout\Oath\AccessKeyManager $accessKeyManager
+        \Webbhuset\CollectorCheckout\Oath\AccessKeyManager $accessKeyManager,
+        ?int $storeId = null
     ) {
-        $this->scopeConfig      = $scopeConfig;
         $this->storeManager     = $storeManager;
         $this->countryData      = $countryData;
         $this->accessKeyManager = $accessKeyManager;
+        $this->storeId = $storeId;
+        parent::__construct($scopeConfig, self::METHOD_CODE, self::DEFAULT_PATH_PATTERN);
     }
 
     /**
@@ -62,18 +119,12 @@ class Config implements
      */
     public function getIsActive(): bool
     {
-        return 1 == $this->getConfigValue('active');
-    }
-
-    public function getStoreScopeId(): int
-    {
-        return (int) $this->storeManager->getStore()->getId();
+        return 1 == $this->getConfigurationSectionValue(self::CONFIG_FIELD_ACTIVE);
     }
 
     public function getAccessKey(): string
     {
-        $storeId = $this->getStoreScopeId();
-
+        $storeId = $this->getMagentoStoreId();
         return $this->accessKeyManager->getAccessKeyByStore($storeId);
     }
 
@@ -84,7 +135,7 @@ class Config implements
      */
     public function getDeletePendingOrders(): bool
     {
-        return 1 == $this->getConfigValue('delete_pending_orders');
+        return 1 == (int)$this->getConfigurationSectionValue(self::CONFIG_FIELD_DELETE_PENDING_ORDERS);
     }
 
     /**
@@ -94,9 +145,8 @@ class Config implements
      */
     public function getCreateCustomerAccount(): bool
     {
-        return 1 == $this->getConfigValue('create_customer_account');
+        return 1 == (int)$this->getConfigurationSectionValue(self::CONFIG_FIELD_CREATE_CUSTOMER_ACCOUNT);
     }
-
 
     /**
      * Get country code
@@ -105,7 +155,7 @@ class Config implements
      */
     public function getCountryCode() : string
     {
-        return $this->getConfigValue('country_code');
+        return $this->getConfigurationSectionValue(self::CONFIG_FIELD_COUNTRY_CODE);
     }
 
     /**
@@ -158,7 +208,7 @@ class Config implements
      */
     public function getCustomerTypeAllowed(): int
     {
-        return $this->getConfigValue('customer_type') ? $this->getConfigValue('customer_type') : 0;
+        return (int)$this->getConfigurationSectionValue(self::CONFIG_FIELD_CUSTOMER_TYPE);
     }
 
     /**
@@ -168,9 +218,8 @@ class Config implements
      */
     public function getDefaultCustomerType(): int
     {
-        return $this->getConfigValue('default_customer_type') ? $this->getConfigValue('default_customer_type') : 0;
+        return (int)$this->getConfigurationSectionValue(self::CONFIG_FIELD_DEFAULT_CUSTOMER_TYPE);
     }
-
 
     /**
      * Returns true if in test mode
@@ -179,7 +228,7 @@ class Config implements
      */
     public function getIsTestMode(): bool
     {
-        return $this->getConfigValue('test_mode') ? $this->getConfigValue('test_mode') : false;
+        return !!$this->getConfigurationSectionValue(self::CONFIG_FIELD_TEST_MODE);
     }
 
     /**
@@ -198,7 +247,7 @@ class Config implements
             return $this->getTestModeClientId();
         }
 
-        return (string) $this->getConfigValue('client_id');
+        return (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_CLIENT_ID);
     }
 
     public function getClientSecret(): string
@@ -207,7 +256,7 @@ class Config implements
             return $this->getTestModeClientSecret();
         }
 
-        return (string) $this->getConfigValue('client_secret');
+        return (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_CLIENT_SECRET);
     }
 
     /**
@@ -222,12 +271,12 @@ class Config implements
 
     public function getTestModeClientSecret(): string
     {
-        return (string) $this->getConfigValue('test_mode_client_secret');
+        return (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_TEST_MODE_CLIENT_SECRET);
     }
 
     public function getTestModeClientId(): string
     {
-        return (string) $this->getConfigValue('test_mode_client_id');
+        return (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_TEST_MODE_CLIENT_ID);
     }
 
     /**
@@ -237,7 +286,7 @@ class Config implements
      */
     public function getMerchantTermsUri(): string
     {
-        return $this->getConfigValue('terms_url') ? $this->getConfigValue('terms_url') : "";
+        return (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_TERMS_URL);
     }
 
     /**
@@ -256,7 +305,8 @@ class Config implements
 
     private function getUrl($urlKey):string
     {
-        $store = $this->storeManager->getStore();
+        $store = $this->storeManager->getStore($this->storeId);
+        /** @var \Magento\Store\Model\Store $store */
         $baseUrl = $store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK);
 
         return rtrim($baseUrl, '/') . '/' . ltrim($urlKey, '/');
@@ -328,7 +378,7 @@ class Config implements
      */
     public function getNotificationUri() : string
     {
-        $urlKey = "collectorbank/notification/index/reference/{checkout.publictoken}";
+        $urlKey = self::URL_KEY_NOTIFICATION;
 
         if ($this->getCustomBaseUrl()) {
             return $this->getCustomBaseUrl() . $urlKey;
@@ -345,7 +395,7 @@ class Config implements
      */
     public function getValidationUri(): string
     {
-        $urlKey = "collectorbank/validation/index/reference/{checkout.publictoken}";
+        $urlKey = self::URL_KEY_VALIDATION;
 
         if ($this->getCustomBaseUrl()) {
             return $this->getCustomBaseUrl() . $urlKey;
@@ -361,7 +411,7 @@ class Config implements
      */
     public function getOrderStatusNew(): string
     {
-        return $this->getWithoutConfigurationConfigValue('order_status');
+        return $this->getBaseSectionValue(self::BASE_FIELD_ORDER_STATUS);
     }
 
     /**
@@ -371,7 +421,7 @@ class Config implements
      */
     public function getOrderStatusAcknowledged(): string
     {
-        return $this->getConfigValue('order_accepted_status');
+        return $this->getConfigurationSectionValue(self::CONFIG_FIELD_ORDER_ACCEPTED_STATUS);
     }
 
     /**
@@ -381,7 +431,7 @@ class Config implements
      */
     public function getOrderStatusHolded(): string
     {
-        return $this->getConfigValue('order_holded_status');
+        return $this->getConfigurationSectionValue(self::CONFIG_FIELD_ORDER_HOLDED_STATUS);
     }
 
     /**
@@ -391,7 +441,7 @@ class Config implements
      */
     public function getOrderStatusDenied(): string
     {
-        return $this->getConfigValue('order_denied_status');
+        return $this->getConfigurationSectionValue(self::CONFIG_FIELD_ORDER_DENIED_STATUS);
     }
 
     /**
@@ -401,9 +451,7 @@ class Config implements
      */
     public function getB2CProfileName() : string
     {
-        $profileName = $this->getConfigValue('profile_name');
-
-        return $profileName ? $profileName : "";
+        return (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_PROFILE_NAME);
     }
 
     /**
@@ -413,9 +461,7 @@ class Config implements
      */
     public function getB2BProfileName() : string
     {
-        $profileName = $this->getConfigValue('profile_name_b2b');
-
-        return $profileName ? $profileName : "";
+        return (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_PROFILE_NAME_B2B);
     }
 
     /**
@@ -434,7 +480,6 @@ class Config implements
         return $this->getB2BProfileName();
     }
 
-
     /**
      * Get production mode store id for B2C
      *
@@ -442,7 +487,7 @@ class Config implements
      */
     public function getProductionModeB2C() : string
     {
-        return $this->getConfigValue('b2c') ? $this->getConfigValue('b2c') : "";
+        return (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_B2C);
     }
 
     /**
@@ -452,9 +497,8 @@ class Config implements
      */
     public function getProductionModeB2B() : string
     {
-        return $this->getConfigValue('b2b') ? $this->getConfigValue('b2b') : "";
+        return (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_B2B);
     }
-
 
     /**
      * Get storeid for b2b for testmode
@@ -463,7 +507,7 @@ class Config implements
      */
     public function getTestModeB2C(): string
     {
-        return $this->getConfigValue('test_mode_b2c') ? $this->getConfigValue('test_mode_b2c') : "";
+        return (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_TEST_MODE_B2C);
     }
 
     /**
@@ -473,33 +517,7 @@ class Config implements
      */
     public function getTestModeB2B(): string
     {
-        return $this->getConfigValue('test_mode_b2b') ? $this->getConfigValue('test_mode_b2b') : "";
-    }
-
-    protected function getWithoutConfigurationConfigValue($name)
-    {
-        $storeId = $this->storeManager->getStore()->getId();
-
-        $value = $this->scopeConfig->getValue(
-            'payment/collectorbank_checkout/' . $name,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $storeId
-        );
-
-        return $value;
-    }
-
-    protected function getConfigValue($name)
-    {
-        $storeId = $this->storeManager->getStore()->getId();
-
-        $value = $this->scopeConfig->getValue(
-            'payment/collectorbank_checkout/configuration/' . $name,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $storeId
-        );
-
-        return $value;
+        return (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_TEST_MODE_B2B);
     }
 
     /**
@@ -509,7 +527,7 @@ class Config implements
      */
     public function getIsDeliveryCheckoutActive(): bool
     {
-        return 1 == $this->getDeliveryCheckoutConfigValue('active');
+        return 1 == (int)$this->getDeliverycheckoutSectionValue(self::DELIVERYCHECKOUT_FIELD_ACTIVE);
     }
 
     /**
@@ -519,7 +537,7 @@ class Config implements
      */
     public function getIsCustomDeliveryAdapter(): bool
     {
-        return 1 == $this->getDeliveryCheckoutConfigValue('custom_delivery_adapter');
+        return 1 == (int)$this->getDeliverycheckoutSectionValue(self::DELIVERYCHECKOUT_FIELD_CUSTOM_DELIVERY_ADAPTER);
     }
 
     /**
@@ -527,9 +545,9 @@ class Config implements
      *
      * @return string
      */
-    public function getDeliveryCheckoutFallbackTitle()
+    public function getDeliveryCheckoutFallbackTitle(): string
     {
-        return $this->getDeliveryCheckoutConfigValue('fallback_title');
+        return (string)$this->getDeliverycheckoutSectionValue(self::DELIVERYCHECKOUT_FIELD_FALLBACK_TITLE);
     }
 
     /**
@@ -537,9 +555,9 @@ class Config implements
      *
      * @return string
      */
-    public function getDeliveryCheckoutFallbackDescription()
+    public function getDeliveryCheckoutFallbackDescription(): string
     {
-        return $this->getDeliveryCheckoutConfigValue('fallback_description');
+        return (string)$this->getDeliverycheckoutSectionValue(self::DELIVERYCHECKOUT_FIELD_FALLBACK_DESCRIPTION);
     }
 
     /**
@@ -547,22 +565,9 @@ class Config implements
      *
      * @return float
      */
-    public function getDeliveryCheckoutFallbackPrice()
+    public function getDeliveryCheckoutFallbackPrice(): float
     {
-        return (float)$this->getDeliveryCheckoutConfigValue('fallback_price');
-    }
-
-    protected function getDeliveryCheckoutConfigValue($name)
-    {
-        $storeId = $this->storeManager->getStore()->getId();
-
-        $value = $this->scopeConfig->getValue(
-            'payment/collectorbank_checkout/deliverycheckout/' . $name,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $storeId
-        );
-
-        return $value;
+        return (float)$this->getDeliverycheckoutSectionValue(self::DELIVERYCHECKOUT_FIELD_FALLBACK_PRICE);
     }
 
     /**
@@ -570,7 +575,7 @@ class Config implements
      *
      * @return string
      */
-    public function getMode()
+    public function getMode(): string
     {
         return $this->getIsTestMode() ? "test mode" : "production mode";
     }
@@ -582,7 +587,7 @@ class Config implements
      */
     public function isTestMode(): bool
     {
-        return $this->getIsTestMode();
+        return !!$this->getIsTestMode();
     }
 
     /**
@@ -598,43 +603,45 @@ class Config implements
     /**
      * Get custom base url - used one behind a proxy / firewall
      *
-     * @return mixed
+     * @return string
      */
-    public function getCustomBaseUrl()
+    public function getCustomBaseUrl(): string
     {
-        return $this->getConfigValue('custom_base_url');
+        return (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_CUSTOM_BASE_URL);
     }
 
     public function isNewsletter(): bool
     {
-        return (bool) $this->getConfigValue('newsletter');
+        return !!$this->getConfigurationSectionValue(self::CONFIG_FIELD_NEWSLETTER);
     }
 
-    public function getNewsletterText():string
+    public function getNewsletterText(): string
     {
-        return $this->getConfigValue('newsletter_text');
+        return (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_NEWSLETTER_TEXT);
     }
 
     public function isComment(): bool
     {
-        return (bool) $this->getConfigValue('comment');
+        return !!$this->getConfigurationSectionValue(self::CONFIG_FIELD_COMMENT);
     }
 
-    public function getCommentText():string
+    public function getCommentText(): string
     {
-        return $this->getConfigValue('comment_text');
+        return (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_COMMENT_TEXT);
     }
 
     /**
      * Get checkout url
      *
-     * @return mixed
+     * @return string
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getCheckoutUrl()
+    public function getCheckoutUrl(): string
     {
         $urlKey = \Webbhuset\CollectorCheckout\Gateway\Config::CHECKOUT_URL_KEY;
-        $url = $this->storeManager->getStore()->getUrl($urlKey);
+        $store = $this->storeManager->getStore();
+        /** @var \Magento\Store\Model\Store $store */
+        $url = $store->getUrl($urlKey);
 
         return $url;
     }
@@ -644,35 +651,21 @@ class Config implements
      *
      * @return mixed
      */
-    public function getStyleDataLang()
+    public function getStyleDataLang(): string
     {
-        $data = $this->getConfigValue('style_data_lang');
+        $data = (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_STYLE_DATA_LANG);
 
-        return ($data) ? $data : $this->getDefaultLanguage();
-    }
-
-    /**
-     * Get default language code for the selected country
-     *
-     *
-     * @return mixed
-     */
-    public function getDefaultLanguage()
-    {
-        $language = $this->countryData->getDefaultLanguagePerCounty();
-        $countryCode = $this->getCountryCode();
-
-        return $language[$countryCode];
+        return ($data) ? $data : (string)$this->getDefaultLanguage();
     }
 
     /**
      * Get style data-padding, an attribute used for styling iframe
      *
-     * @return mixed|null
+     * @return int|null
      */
-    public function getStyleDataPadding()
+    public function getStyleDataPadding(): ?int
     {
-        $data = $this->getConfigValue('style_data_padding');
+        $data = (int)$this->getConfigurationSectionValue(self::CONFIG_FIELD_STYLE_DATA_PADDING);
 
         return ($data) ? $data : null;
     }
@@ -682,9 +675,9 @@ class Config implements
      *
      * @return mixed|null
      */
-    public function getStyleDataContainerId()
+    public function getStyleDataContainerId(): ?string
     {
-        $data = $this->getConfigValue('style_data_container_id');
+        $data = (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_STYLE_DATA_CONTAINER_ID);
 
         return ($data) ? $data : null;
     }
@@ -692,11 +685,11 @@ class Config implements
     /**
      * Get style data-action-color, an attribute used for styling iframe
      *
-     * @return mixed|null
+     * @return string|null
      */
-    public function getStyleDataActionColor()
+    public function getStyleDataActionColor(): ?string
     {
-        $data = $this->getConfigValue('style_data_action_color');
+        $data = (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_STYLE_DATA_ACTION_COLOR);
 
         return ($data) ? $data : null;
     }
@@ -704,11 +697,11 @@ class Config implements
     /**
      * Get style data-action-text-color, an attribute used for styling iframe
      *
-     * @return mixed|null
+     * @return string|null
      */
-    public function getStyleDataActionTextColor()
+    public function getStyleDataActionTextColor(): ?string
     {
-        $data = $this->getConfigValue('style_data_action_text_color');
+        $data = (string)$this->getConfigurationSectionValue(self::CONFIG_FIELD_STYLE_DATA_ACTION_TEXT_COLOR);
 
         return ($data) ? $data : null;
     }
@@ -716,13 +709,83 @@ class Config implements
     /**
      * Get default currency code for the selected country
      *
-     * @return mixed
+     * @return string
      */
-    public function getCurrency()
+    public function getCurrency(): string
     {
         $currencies = $this->countryData->getCurrencyPerCountry();
         $countryCode = $this->getCountryCode();
 
-        return $currencies[$countryCode];
+        return (string)$currencies[$countryCode];
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return void
+     */
+    public function setStoreId(?int $storeId): void
+    {
+        $this->storeId = $storeId;
+    }
+
+    /**
+     * Get default language code for the selected country
+     *
+     * @return string
+     */
+    private function getDefaultLanguage(): string
+    {
+        $language = $this->countryData->getDefaultLanguagePerCounty();
+        $countryCode = $this->getCountryCode();
+
+        return (string)$language[$countryCode];
+    }
+
+    /**
+     * @param string $field
+     * @return mixed
+     */
+    private function getConfigurationSectionValue(string $field)
+    {
+        return $this->getValue(
+            sprintf('%s/%s', self::GROUP_CONFIGURATION, $field),
+            $this->getMagentoStoreId()
+        );
+    }
+
+    /**
+     * @param string $field
+     * @return mixed
+     */
+    private function getDeliverycheckoutSectionValue(string $field)
+    {
+        return $this->getValue(
+            sprintf('%s/%s', self::GROUP_DELIVERYCHECKOUT, $field),
+            $this->getMagentoStoreId()
+        );
+    }
+
+    /**
+     * @param string $field
+     * @return mixed
+     */
+    private function getBaseSectionValue(string $field)
+    {
+        return $this->getValue(
+            $field,
+            $this->getMagentoStoreId()
+        );
+    }
+
+    /**
+     * @return int
+     */
+    private function getMagentoStoreId(): int
+    {
+        if (null === $this->storeId) {
+            $this->storeId = $this->storeManager->getStore()->getId();
+        }
+
+        return (int)$this->storeId;
     }
 }

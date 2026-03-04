@@ -18,7 +18,7 @@
         </arguments>
     </type>
 
-    <virtualType name="CollectorCheckoutFacade" type="Webbhuset\CollectorCheckout\Checkout\Adapter">
+    <virtualType name="CollectorCheckoutFacade" type="Magento\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="const">Webbhuset\CollectorCheckout\Gateway\Config::CHECKOUT_CODE</argument>
             <argument name="formBlockType" xsi:type="string">Webbhuset\CollectorCheckout\Block\Admin\Form</argument>
@@ -31,14 +31,8 @@
     <virtualType name="CollectorBankInvoiceValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
         <arguments>
             <argument name="handlers" xsi:type="array">
-                <item name="default" xsi:type="string">CollectorBankInvoiceConfigValueHandler</item>
+                <item name="default" xsi:type="string">Webbhuset\CollectorCheckout\Gateway\ValueHandler\ConfigValueHandler</item>
             </argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="CollectorBankInvoiceConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
-        <arguments>
-            <argument name="configInterface" xsi:type="object">CollectorBankInvoicePaymentConfig</argument>
         </arguments>
     </virtualType>
 
@@ -91,6 +85,7 @@
             </argument>
         </arguments>
     </virtualType>
+
     <preference
             for="Webbhuset\CollectorCheckout\Api\Data\CarrierDataInterface"
             type="Webbhuset\CollectorCheckout\Carrier\CarrierData"
@@ -103,6 +98,15 @@
             for="Magento\Sales\Block\Adminhtml\Order\AbstractOrder"
             type="Webbhuset\CollectorCheckout\Block\Admin\Carrier"
     />
+    <preference
+        for="Webbhuset\CollectorCheckout\Api\Data\DTO\GetOrderInformationInterface"
+        type="Webbhuset\CollectorCheckout\Model\DTO\GetOrderInformation" />
+    <preference
+        for="Webbhuset\CollectorCheckout\Api\Data\DTO\GetOrderInformation\ItemInterface"
+        type="Webbhuset\CollectorCheckout\Model\DTO\GetOrderInformation\Item" />
+    <preference
+        for="Webbhuset\CollectorCheckout\Api\Data\DTO\Invoice\AdministrationResultInterface"
+        type="Webbhuset\CollectorCheckout\Model\DTO\Invoice\AdministrationResult" />
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">

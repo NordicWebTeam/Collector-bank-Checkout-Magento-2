@@ -1,6 +1,10 @@
 <?php
 /** @var \Webbhuset\CollectorCheckout\Block\Checkout $block */
-$iframe = $block->getIframe();
+/** @var \Magento\Framework\Escaper $escaper */
+
+$viewModel = $block->getData('view_model');
+/** @var \Webbhuset\CollectorCheckout\ViewModel\Iframe $viewModel */
+$iframe = $viewModel->getIframe();
 ?>
 <script type="text/x-magento-init">
     {
@@ -10,12 +14,12 @@ $iframe = $block->getIframe();
                     "collectorIframe": {
                         "component": "collectorIframe",
                         "config":{
-                            "src": "<?= $block->escapeUrl($block->getIframeSrc()) ?>",
-                            "dataToken": "<?= $block->escapeHtml($block->getDataToken()) ?>",
-                            "dataVersion": "<?= $block->escapeHtml($block->getDataVersion()) ?>",
-                            "dataLang": "<?= $block->escapeHtml($block->getDataLang()) ?>",
-                            "dataActionColor": "<?= $block->escapeHtml($block->getDataActionColor()) ?>",
-                            "dataActionTextColor": "<?= $block->escapeHtml($block->getDataActionTextColor()) ?>"
+                            "src": "<?= $escaper->escapeUrl($viewModel->getIframeSrc()) ?>",
+                            "dataToken": "<?= $escaper->escapeHtml($viewModel->getDataToken()) ?>",
+                            "dataVersion": "<?= $escaper->escapeHtml($viewModel->getDataVersion()) ?>",
+                            "dataLang": "<?= $escaper->escapeHtml($viewModel->getDataLang()) ?>",
+                            "dataActionColor": "<?= $escaper->escapeHtml((string)$viewModel->getDataActionColor()) ?>",
+                            "dataActionTextColor": "<?= $escaper->escapeHtml((string)$viewModel->getDataActionTextColor()) ?>"
                         }
                     }
                 }

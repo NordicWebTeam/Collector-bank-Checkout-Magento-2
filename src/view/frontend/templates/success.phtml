@@ -1,3 +1,17 @@
+<?php
+
+/**
+ * @var Magento\Framework\View\Element\Template $block
+ * @var \Webbhuset\CollectorCheckout\ViewModel\Success $successViewModel
+ * @var \Webbhuset\CollectorCheckout\ViewModel\Iframe $iframeViewModel
+ * @var Magento\Framework\Escaper $escaper
+ */
+
+$iframeViewModel = $block->getIframeViewModel();
+$successViewModel = $block->getSuccessViewModel();
+$iframe = $iframeViewModel->getIframe();
+?>
+
 <script type="text/x-magento-init">
     {
         "*": {
@@ -11,23 +25,16 @@
         }
     }
 </script>
-<?php
-    $iframe = $block->getIframe();
-?>
 
 <?php if ($iframe): ?>
     <script>
         window.dataLayer = window.dataLayer || [];
-        dataLayer.push(
-            <?= $block->getAnalyticsDatalayer() ?>
-        );
-        dataLayer.push(
-            <?= $block->getEnhancedEcommerceDatalayer() ?>
-        );
+        dataLayer.push(<?= /** @noEscape */ $successViewModel->getAnalyticsDatalayer() ?>);
+        dataLayer.push(<?= /** @noEscape */ $successViewModel->getEnhancedEcommerceDatalayer() ?>);
     </script>
-    <?= $iframe ?>
+    <?= /** @noEscape */ $iframe ?>
 <?php else: ?>
 <div>
-    <?=__('The url is no longer valid')?>
+    <?= $escaper->escapeHtml(__('The url is no longer valid')) ?>
 </div>
 <?php endif; ?>

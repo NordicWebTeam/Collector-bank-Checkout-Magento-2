@@ -2,10 +2,14 @@
 
 namespace Webbhuset\CollectorCheckout\Invoice;
 
-use Webbhuset\CollectorPaymentSDK\Invoice\Article\Article as Article;
-use Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList as ArticleList;
-use Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRow;
-use Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRows;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\Article as Article;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList as ArticleList;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Rows\InvoiceRow;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Rows\InvoiceRows;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleListFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Rows\InvoiceRowFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Rows\InvoiceRowsFactory;
 
 /**
  * Class RowMatcher
@@ -14,15 +18,6 @@ use Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRows;
  */
 class RowMatcher
 {
-    /**
-     * @var \Webbhuset\CollectorCheckout\Data\OrderHandler
-     */
-    protected $orderHandler;
-    /**
-     * @var \Webbhuset\CollectorCheckout\Adapter
-     */
-    protected $adapter;
-
     /**
      * @var RowMatcher\CreditMemoHandler
      */
@@ -33,24 +28,32 @@ class RowMatcher
     protected $invoiceHandler;
     private \Webbhuset\CollectorCheckout\Test\GetOrderInformation $getOrderInformation;
     private \Webbhuset\CollectorCheckout\Helper\GetMatchingArticles $getMatchingArticles;
+    private ArticleListFactory $articleListFactory;
+    private ArticleFactory $articleFactory;
+    private InvoiceRowsFactory $invoiceRowsFactory;
+    private InvoiceRowFactory $invoiceRowFactory;
 
     /**
      * rowMatcher constructor.
      */
     public function __construct(
-        \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
-        \Webbhuset\CollectorCheckout\Adapter $adapter,
         \Webbhuset\CollectorCheckout\Helper\GetMatchingArticles $getMatchingArticles,
         \Webbhuset\CollectorCheckout\Test\GetOrderInformation $getOrderInformation,
         \Webbhuset\CollectorCheckout\Invoice\RowMatcher\CreditMemoHandler $creditMemoHandler,
-        \Webbhuset\CollectorCheckout\Invoice\RowMatcher\InvoiceHandler $invoiceHandler
+        \Webbhuset\CollectorCheckout\Invoice\RowMatcher\InvoiceHandler $invoiceHandler,
+        ArticleListFactory $articleListFactory,
+        ArticleFactory $articleFactory,
+        InvoiceRowsFactory $invoiceRowsFactory,
+        InvoiceRowFactory $invoiceRowFactory
     ) {
-        $this->orderHandler         = $orderHandler;
-        $this->adapter              = $adapter;
         $this->creditMemoHandler    = $creditMemoHandler;
         $this->invoiceHandler       = $invoiceHandler;
         $this->getOrderInformation  = $getOrderInformation;
         $this->getMatchingArticles  = $getMatchingArticles;
+        $this->articleListFactory   = $articleListFactory;
+        $this->articleFactory       = $articleFactory;
+        $this->invoiceRowsFactory   = $invoiceRowsFactory;
+        $this->invoiceRowFactory    = $invoiceRowFactory;
     }
 
     /**
@@ -63,10 +66,10 @@ class RowMatcher
     public function invoiceToArticleList(
         \Magento\Sales\Model\Order\Invoice $invoice,
         \Magento\Sales\Api\Data\OrderInterface $order
-    ): \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList {
+    ): \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList {
         $checkoutDataArticleList = $this->checkoutDataToArticleList($order);
 
-        $matchingArticles = new ArticleList();
+        $matchingArticles = $this->articleListFactory->create();
 
         $matchingArticles = $this->getMatchingArticles->execute(
             $matchingArticles,
@@ -99,7 +102,7 @@ class RowMatcher
      */
     public function fullInvoiceToArticleList(
         \Magento\Sales\Api\Data\OrderInterface $order
-    ): \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList {
+    ): \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList {
         return $this->checkoutDataToArticleList($order);
     }
 
@@ -113,10 +116,10 @@ class RowMatcher
     public function creditMemoToArticleList(
         \Magento\Sales\Model\Order\Creditmemo $creditMemo,
         \Magento\Sales\Api\Data\OrderInterface $order
-    ): \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList {
+    ): \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList {
         $checkoutDataArticleList = $this->checkoutDataToArticleList($order);
 
-        $matchingArticles = new ArticleList();
+        $matchingArticles = $this->articleListFactory->create();
 
         $matchingArticles = $this->getMatchingArticles->execute(
             $matchingArticles,
@@ -150,7 +153,7 @@ class RowMatcher
      */
     public function fullCreditMemoToArticleList(
         \Magento\Sales\Api\Data\OrderInterface $order
-    ): \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList {
+    ): \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList {
         return $this->checkoutDataToArticleList($order);
     }
 
@@ -162,32 +165,30 @@ class RowMatcher
      */
     public function checkoutDataToArticleList(
         \Magento\Sales\Api\Data\OrderInterface $order
-    ): \Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList {
-        $orderInformation = $this->getOrderInformation->execute((int)$order->getEntityId());
-        $articles = new ArticleList();
+    ): \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList {
+        $getOrderInformation = $this->getOrderInformation->execute((int)$order->getEntityId());
+        $articleList = $this->articleListFactory->create();
 
-        $items = $orderInformation['data']['items'];
-        foreach ($items as $item) {
-            /** @var $item \Webbhuset\CollectorCheckoutSDK\Checkout\Order\Item */
-            $articleId      = $item['articleNumber'];
-            $description    = $item['description'];
-            $qty            = $item['quantity'];
-            $sku            = $item['articleNumber'];
-            $vat            = (float) $item['vatRate'];
-            $unitPrice      = (float) $item['price'];
+        foreach ($getOrderInformation->getItems() as $item) {
+            $article = $this->articleFactory->create([
+                'articleId' => $item->getArticleNumber(),
+                'description' => $item->getDescription(),
+                'quantity' => $item->getQuantiy(),
+                'sku' => $item->getArticleNumber(),
+                'unitPrice' => $item->getPrice(),
+                'vat' => $item->getVatRate()
+            ]);
 
-            $article = new Article($articleId, $description, $qty, $sku, $unitPrice, $vat);
-
-            $articles->addArticle($article);
+            $articleList->addArticle($article);
         }
 
-        return $articles;
+        return $articleList;
     }
 
     public function convertArticleListToInvoiceRows(
         ArticleList $articleList
     ): InvoiceRows {
-        return new InvoiceRows();
+        return $this->invoiceRowsFactory->create();
     }
 
     /**
@@ -199,7 +200,7 @@ class RowMatcher
     public function adjustmentToInvoiceRows(
         $adjustmentFee,
         $taxPercent = 0
-    ): \Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRow {
+    ): \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Rows\InvoiceRow {
         if ($adjustmentFee > 0) {
             $articleId = __('Discount');
             $description = __('Discount');
@@ -211,6 +212,13 @@ class RowMatcher
         }
         $qty = 1;
 
-        return new InvoiceRow($articleId, $description, $qty, $adjustmentFee, (float) $taxPercent, $type);
+        return $this->invoiceRowFactory->create([
+            'articleId' => $articleId,
+            'description' => $description,
+            'qty' => $qty,
+            'adjustmentFee' => $adjustmentFee,
+            'taxPercent' => (float) $taxPercent,
+            'type' => $type
+        ]);
     }
 }

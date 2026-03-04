@@ -10,7 +10,7 @@ use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Model\ShippingMethodManagement;
+use Magento\Quote\Api\ShippingMethodManagementInterface;
 use Webbhuset\CollectorCheckout\Checkout\Quote\Manager;
 use Webbhuset\CollectorCheckout\Logger\Logger;
 use Webbhuset\CollectorCheckout\Shipment\ConvertToShipment;
@@ -28,58 +28,39 @@ class Index extends Action
      * @var JsonFactory
      */
     protected $resultJsonFactory;
+
     /**
      * @var Manager
      */
     private $quoteManager;
+
     /**
      * @var RequestInterface
      */
     private $request;
+
     /**
-     * @var ShippingMethodManagement
+     * @var ShippingMethodManagementInterface
      */
     private $shippingMethodManagement;
+
     /**
      * @var ConvertToShipment
      */
     private $convertToShipment;
-    /**
-     * @var SimpleDataObjectConverter
-     */
-    private $simpleDataObjectConverter;
-    /**
-     * @var Json
-     */
-    private $json;
-    /**
-     * @var GetIconForShippingMethod
-     */
-    private $getIconForShippingMethod;
+
     /**
      * @var CartRepositoryInterface
      */
     private $cartRepository;
-    /**
-     * @var Context
-     */
-    private $context;
-    /**
-     * @var Logger
-     */
-    private Logger $logger;
 
     public function __construct(
         Context $context,
         Manager $quoteManager,
-        ShippingMethodManagement $shippingMethodManagement,
+        ShippingMethodManagementInterface $shippingMethodManagement,
         ConvertToShipment $convertToShipment,
-        Logger $logger,
         RequestInterface $request,
-        Json $json,
         CartRepositoryInterface $cartRepository,
-        SimpleDataObjectConverter $simpleDataObjectConverter,
-        GetIconForShippingMethod $getIconForShippingMethod,
         JsonFactory $resultJsonFactory
     ) {
         parent::__construct($context);
@@ -89,12 +70,7 @@ class Index extends Action
         $this->request = $request;
         $this->shippingMethodManagement = $shippingMethodManagement;
         $this->convertToShipment = $convertToShipment;
-        $this->simpleDataObjectConverter = $simpleDataObjectConverter;
-        $this->json = $json;
-        $this->getIconForShippingMethod = $getIconForShippingMethod;
         $this->cartRepository = $cartRepository;
-        $this->context = $context;
-        $this->logger = $logger;
     }
 
     /**

@@ -3,7 +3,7 @@
 namespace Webbhuset\CollectorCheckout\Invoice\RowMatcher;
 
 use Webbhuset\CollectorCheckout\Helper\ProductType;
-use Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList as ArticleList;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList as ArticleList;
 
 class CreditMemoHandler
 {
@@ -12,12 +12,7 @@ class CreditMemoHandler
      */
     protected $orderHandler;
     /**
-     * @var \Magento\Sales\Api\OrderItemRepositoryInterface
-     */
-    protected $orderItemRepository;
-
-    /**
-     * @var \Magento\Sales\Model\OrderRepository
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
      */
     protected $orderRepository;
 
@@ -27,11 +22,9 @@ class CreditMemoHandler
      */
     public function __construct(
         \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
-        \Magento\Sales\Api\OrderItemRepositoryInterface $orderItemRepository,
-        \Magento\Sales\Model\OrderRepository $orderRepository
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
     ) {
         $this->orderHandler         = $orderHandler;
-        $this->orderItemRepository  = $orderItemRepository;
         $this->orderRepository      = $orderRepository;
     }
 

@@ -16,6 +16,7 @@ class PartCredit extends Command
      * @var State
      */
     private $appState;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Test\PartCredit
      */
@@ -24,7 +25,7 @@ class PartCredit extends Command
     public function __construct(
         State $appState,
         \Webbhuset\CollectorCheckout\Test\PartCredit $partCredit,
-        string $name = null
+        ?string $name = null
     ) {
         parent::__construct($name);
 

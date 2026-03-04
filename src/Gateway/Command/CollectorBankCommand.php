@@ -6,9 +6,9 @@ use Magento\Payment\Gateway\CommandInterface as CommandInterface;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Webbhuset\CollectorCheckout\Gateway\Config;
-use Webbhuset\CollectorPaymentSDK\Errors\ResponseError as ResponseError;
-use Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList;
-use Webbhuset\CollectorPaymentSDK\Invoice\Rows\InvoiceRow;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Errors\ResponseError as ResponseError;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Rows\InvoiceRow;
 
 /**
  * Class CollectorBankCommand
@@ -50,7 +50,7 @@ class CollectorBankCommand implements CommandInterface
      */
     protected $orderHandler;
     /**
-     * @var \Magento\Sales\Model\OrderRepository
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
      */
     protected $orderRepository;
 
@@ -73,7 +73,7 @@ class CollectorBankCommand implements CommandInterface
         \Webbhuset\CollectorCheckout\Invoice\RowMatcher $rowMatcher,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
-        \Magento\Sales\Model\OrderRepository $orderRepository,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Webbhuset\CollectorCheckout\Invoice\RowMatcher\InvoiceHandler $invoiceHandler
     ) {
         $this->method           = $client['method'];
@@ -287,7 +287,8 @@ class CollectorBankCommand implements CommandInterface
         $creditMemo = $payment->getCreditmemo();
 
         $adjustmentsInvoiceRows = $this->getAdjustmentsInvoiceRows($creditMemo);
-        if (empty($adjustmentsInvoiceRows) && $this->isFullCredit($creditMemo, $order)) {
+        $fullCredit = $this->isFullCredit($creditMemo, $order);
+        if (empty($adjustmentsInvoiceRows) && $fullCredit) {
             $articleList = $this->rowMatcher->fullCreditMemoToArticleList($order);
         } else {
             $articleList = $this->rowMatcher->creditMemoToArticleList($creditMemo, $order);
@@ -316,6 +317,7 @@ class CollectorBankCommand implements CommandInterface
             $this->transaction->create()->addTransaction(
                 $payment->getOrder(),
                 TransactionInterface::TYPE_REFUND,
+                $fullCredit,
                 $response
             );
         } catch (ResponseError $e) {

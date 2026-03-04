@@ -16,7 +16,7 @@ class IsCustomDeliveryAdapter
     }
 
     public function execute(
-        \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
+        \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData
     ):bool {
         $shipment = $checkoutData->getShipping();
         if (!$shipment) {
@@ -32,7 +32,7 @@ class IsCustomDeliveryAdapter
         return false;
     }
 
-    public function getDeliveryFee(\Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData):?float
+    public function getDeliveryFee(\Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData):?float
     {
         if (!$this->execute($checkoutData)) {
             return null;
@@ -43,7 +43,7 @@ class IsCustomDeliveryAdapter
         return (float) $shippingChoice['fee'] + $this->extractShippingOptionFee->execute($shippingChoice);
     }
 
-    public function getDeliveryMethod(\Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData):?string
+    public function getDeliveryMethod(\Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData):?string
     {
         if (!$this->execute($checkoutData)) {
             return null;

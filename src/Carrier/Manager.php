@@ -35,14 +35,14 @@ class Manager
      * Saves shipment data on an order
      *
      * @param int                                          $orderId
-     * @param \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
+     * @param \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData
      * @return \Magento\Sales\Api\Data\OrderInterface
      */
     public function saveShipmentDataOnOrder(
         int $orderId,
-        \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
+        \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData
     ) {
-        /** @var \Webbhuset\CollectorCheckoutSDK\Checkout\Shipping $shipping */
+        /** @var \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Shipping $shipping */
         $shipping = $checkoutData->getShipping();
         $shippingData = $shipping->getData();
 
