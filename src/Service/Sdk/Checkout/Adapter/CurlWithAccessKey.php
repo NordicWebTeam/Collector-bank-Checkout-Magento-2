@@ -234,8 +234,8 @@ class CurlWithAccessKey
         $bodyJsonEncoded = json_encode($body);
         $response = $this->sendRequest($path, $bodyJsonEncoded, 'POST');
 
-        if (isset($response['header'])
-            && !$this->isResponseHeader202($response['header'])) {
+        if (isset($response['status'])
+            && !$this->isResponseHeader202($response['status'])) {
             throw new ResponseError($body, $response);
         }
 
