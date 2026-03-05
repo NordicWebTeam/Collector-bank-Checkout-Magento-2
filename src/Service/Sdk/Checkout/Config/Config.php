@@ -15,6 +15,7 @@ class Config implements \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Config
     private string $notificationUri = '';
     private string $validationUri = '';
     private string $profileName = '';
+    private array $customFields = [];
 
     public function getAccessKey() : string
     {
@@ -123,5 +124,15 @@ class Config implements \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Config
         $this->profileName = $profileName;
 
         return $this;
+    }
+
+    public function setCustomFields(array $fields): void
+    {
+        $this->customFields = $fields;
+    }
+
+    public function getCustomFields(): array
+    {
+        return $this->customFields;
     }
 }
