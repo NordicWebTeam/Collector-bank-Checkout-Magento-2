@@ -108,6 +108,7 @@ define([
                     /*
                         Occurs when no user input should be accepted, for instance during processing of a purchase.
                     */
+                   document.cookie = "collectorbank_public_id=" + encodeURIComponent(event.detail.publicToken) + "; path=/";
                     break;
 
                 case 'collectorCheckoutUnlocked':

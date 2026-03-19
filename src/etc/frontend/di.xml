@@ -27,4 +27,9 @@
     <type name="Magento\Checkout\CustomerData\Cart">
         <plugin name="add_subtotal_to_item" type="Webbhuset\CollectorCheckout\Plugin\AddSubtotalToItem" sortOrder="1"/>
     </type>
+    <type name="Webbhuset\CollectorCheckout\Controller\Index\Index">
+        <plugin name="restore_collector_session_from_cookie" 
+                type="Webbhuset\CollectorCheckout\Plugin\RestoreQuoteFromCookie" 
+                sortOrder="10"/>
+    </type>
 </config>

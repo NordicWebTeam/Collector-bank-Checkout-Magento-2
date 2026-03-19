@@ -172,10 +172,11 @@ class Adapter
             $quote->getShippingAddress()->setCollectShippingRates(true)->collectShippingRates();
             return $quote;
         }
-
-        $this->updateFees($quote);
-        $this->updateCart($quote);
-        $this->quoteRepository->save($quote);
+        if($checkoutData->getStatus()->getStatus() !== \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Status::COMMITTED_TO_PURCHASE) {
+            $this->updateFees($quote);
+            $this->updateCart($quote);
+            $this->quoteRepository->save($quote);
+        }
         return $quote;
     }
 
