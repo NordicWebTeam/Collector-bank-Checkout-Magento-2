@@ -2,7 +2,12 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="content">
-            <block class="Webbhuset\CollectorCheckout\Block\Success" name="collectorbank_success_iframe" template="Webbhuset_CollectorCheckout::success.phtml" cacheable="false" />
+            <block name="collectorbank_success_iframe" template="Webbhuset_CollectorCheckout::success.phtml" cacheable="false">
+                <arguments>
+                    <argument xsi:type="object" name="success_view_model">Webbhuset\CollectorCheckout\ViewModel\Success</argument>
+                    <argument xsi:type="object" name="iframe_view_model">Webbhuset\CollectorCheckout\ViewModel\Iframe</argument>
+                </arguments>
+            </block>
         </referenceContainer>
     </body>
 </page>

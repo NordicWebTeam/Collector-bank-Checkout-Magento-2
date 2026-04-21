@@ -1,3 +1,17 @@
+<?php
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Webbhuset\CollectorCheckout\ViewModel\CheckoutConfigProvider;
+
+/**
+ * @var Template $block
+ * @var Escaper $escaper
+ * @var CheckoutConfigProvider $viewModel 
+ */
+$viewModel = $block->getViewModel();
+?>
+
 <div id="block-summary" data-bind="scope:'block-summary'" class="content shipping-selector" data-role="content" aria-labelledby="block-shipping-heading">
     <h4 class="shipping-header"><?= __('Shipping Methods') ?></h4>
     <!-- ko template: getTemplate() --><!-- /ko -->
@@ -9,15 +23,15 @@
         }
     </script>
     <script>
-        window.checkoutConfig = <?= /* @escapeNotVerified */ $block->getSerializedCheckoutConfig() ?>;
+        window.checkoutConfig = <?= /** @noEscape */ $viewModel->getSerializedCheckoutConfig() ?>;
         window.customerData = window.checkoutConfig.customerData;
         window.isCustomerLoggedIn = window.checkoutConfig.isCustomerLoggedIn;
         require([
             'mage/url',
             'Magento_Ui/js/block-loader'
         ], function(url, blockLoader) {
-            blockLoader("<?= /* @escapeNotVerified */ $block->getViewFileUrl('images/loader-1.gif') ?>");
-            return url.setBaseUrl('<?= /* @escapeNotVerified */ $block->getBaseUrl() ?>');
+            blockLoader("<?= $escaper->escapeUrl($block->getViewFileUrl('images/loader-1.gif')) ?>");
+            return url.setBaseUrl('<?= $escaper->escapeUrl($block->getBaseUrl()) ?>');
         })
     </script>
 </div>

@@ -9,11 +9,16 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
 use Webbhuset\CollectorCheckout\Config\Source\Customer\DefaultType;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Cart;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Cart\Item;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Customer\InitializeCustomer;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Fees;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Fees\Fee;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Cart;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Cart\Item;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Customer\InitializeCustomer;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Fees;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Fees\Fee;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\CartFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Cart\ItemFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Customer\InitializeCustomerFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\FeesFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Fees\FeeFactory;
 
 class QuoteConverter
 {
@@ -34,6 +39,11 @@ class QuoteConverter
      * @var Data\QuoteHandler
      */
     private Data\QuoteHandler $quoteHandler;
+    private CartFactory $cartFactory;
+    private ItemFactory $itemFactory;
+    private FeesFactory $feesFactory;
+    private FeeFactory $feeFactory;
+    private InitializeCustomerFactory $initializeCustomerFactory;
 
     public function __construct(
         \Magento\Tax\Model\Config $taxConfig,
@@ -43,7 +53,12 @@ class QuoteConverter
         CustomerRepositoryInterface $customerRepository,
         AddressRepositoryInterface $addressRepository,
         \Magento\Catalog\Helper\Product\Configuration $configurationHelper,
-        \Webbhuset\CollectorCheckout\Config\QuoteConfigFactory $config
+        \Webbhuset\CollectorCheckout\Config\ConfigFactory $config,
+        CartFactory $cartFactory,
+        ItemFactory $itemFactory,
+        FeesFactory $feesFactory,
+        FeeFactory $feeFactory,
+        InitializeCustomerFactory $initializeCustomerFactory
     ) {
         $this->taxConfig            = $taxConfig;
         $this->taxCalculator        = $taxCalculator;
@@ -53,6 +68,11 @@ class QuoteConverter
         $this->customerRepository   = $customerRepository;
         $this->addressRepository = $addressRepository;
         $this->quoteHandler = $quoteHandler;
+        $this->cartFactory = $cartFactory;
+        $this->itemFactory = $itemFactory;
+        $this->feesFactory = $feesFactory;
+        $this->feeFactory = $feeFactory;
+        $this->initializeCustomerFactory = $initializeCustomerFactory;
     }
 
     public function getCart(\Magento\Quote\Model\Quote $quote) : Cart
@@ -73,7 +93,7 @@ class QuoteConverter
             $items = array_merge($items, [$roundingError]);
         }
         $items = $this->renameDuplicates($items);
-        $cart = new Cart($items);
+        $cart = $this->cartFactory->create(['items' => $items]);
 
         return $cart;
     }
@@ -156,15 +176,15 @@ class QuoteConverter
             return false;
         }
 
-        return new Item(
-            \Webbhuset\CollectorCheckout\Gateway\Config::CURRENCY_ROUNDING_SKU,
-            __("Currency rounding"),
-            $roundingError,
-            1,
-            0,
-            false,
-            \Webbhuset\CollectorCheckout\Gateway\Config::CURRENCY_ROUNDING_SKU
-        );
+        return $this->itemFactory->create([
+            'id' => \Webbhuset\CollectorCheckout\Gateway\Config::CURRENCY_ROUNDING_SKU,
+            'description' => __("Currency rounding"),
+            'unitPrice' => $roundingError,
+            'quantity' => 1,
+            'vat' => 0,
+            'requiresElectronicId' => false,
+            'sku' => \Webbhuset\CollectorCheckout\Gateway\Config::CURRENCY_ROUNDING_SKU
+        ]);
     }
 
     public function getCartItem(
@@ -186,16 +206,16 @@ class QuoteConverter
         $requiresElectronicId   = (bool) $this->requiresElectronicId($quoteItem);
         $sku                    = (string) $quoteItem->getItemId();
 
-        $item = new Item(
-            $id,
-            $description,
-            round($unitPrice, 2),
-            $quantity,
-            $vat,
-            $requiresElectronicId,
-            $sku,
-            $weight
-        );
+        $item = $this->itemFactory->create([
+            'id' => $id,
+            'description' => $description,
+            'unitPrice' => round($unitPrice, 2),
+            'quantity' => $quantity,
+            'vat' => $vat,
+            'requiresElectronicId' => $requiresElectronicId,
+            'sku' => $sku,
+            'weight' => $weight
+        ]);
 
         return $item;
     }
@@ -223,15 +243,15 @@ class QuoteConverter
         $quantity               = (int) $quoteItem->getQty() * $parentQty;
         $vat                    = (float) $quoteItem->getTaxPercent();
 
-        $item = new Item(
-            $id,
-            $description,
-            round($unitPrice/$quantity, 2),
-            $quantity,
-            $vat,
-            null,
-            $quoteItem->getItemId() . ":discount"
-        );
+        $item = $this->itemFactory->create([
+            'id' => $id,
+            'description' => $description,
+            'unitPrice' => round($unitPrice/$quantity, 2),
+            'quantity' => $quantity,
+            'vat' => $vat,
+            'requiresElectronicId' => null,
+            'sku' => $quoteItem->getItemId() . ":discount"
+        ]);
 
         return $item;
     }
@@ -241,10 +261,10 @@ class QuoteConverter
         $shippingFee        = $this->getShippingFee($quote);
         $directInvoiceFee   = $this->getDirectInvoiceFee($quote);
 
-        $fees = new Fees(
-            $shippingFee,
-            $directInvoiceFee
-        );
+        $fees = $this->feesFactory->create([
+            'shippingFee' => $shippingFee,
+            'directInvoiceFee' => $directInvoiceFee
+        ]);
 
         return $fees;
     }
@@ -278,7 +298,6 @@ class QuoteConverter
             return null;
         }
 
-        /** @var \Webbhuset\CollectorCheckout\Config\QuoteConfig $config */
         $config         = $this->config->create();
 
         $id          = (string) $config->getDeliveryCheckoutFallbackTitle();
@@ -286,13 +305,13 @@ class QuoteConverter
         $unitPrice   = (float) $config->getDeliveryCheckoutFallbackPrice();
         $vatPercent  = (float) $this->getShippingTaxPercent($quote);
 
-        $fee = new Fee(
-            $id,
-            $description,
-            $unitPrice,
-            $vatPercent,
-            'shipping'
-        );
+        $fee = $this->feeFactory->create([
+            'id' => $id,
+            'description' => $description,
+            'unitPrice' => $unitPrice,
+            'vat' => $vatPercent,
+            'sku' => 'shipping'
+        ]);
 
         return $fee;
     }
@@ -310,13 +329,13 @@ class QuoteConverter
         $unitPrice   = (float) $shippingAddress->getShippingInclTax();
         $vatPercent  = (float) $this->getShippingTaxPercent($quote);
 
-        $fee = new Fee(
-            $id,
-            $description,
-            $unitPrice,
-            $vatPercent,
-            'shipping'
-        );
+        $fee = $this->feeFactory->create([
+            'id' => $id,
+            'description' => $description,
+            'unitPrice' => $unitPrice,
+            'vat' => $vatPercent,
+            'sku' => 'shipping'
+        ]);
 
         return $fee;
     }
@@ -352,14 +371,14 @@ class QuoteConverter
 
         // Email and mobile phone number are required. If we don't have both, we return null
         if ($email && $mobilePhoneNumber) {
-            $customer = new InitializeCustomer(
-                $email,
-                $mobilePhoneNumber,
-                $nationalIdentificationNumber,
-                $postalCode,
-                $deliveryAddress,
-                $customerType
-            );
+            $customer = $this->initializeCustomerFactory->create([
+                'email' => $email,
+                'mobilePhoneNumber' => $mobilePhoneNumber,
+                'nationalIdentificationNumber' => $nationalIdentificationNumber,
+                'postalCode' => $postalCode,
+                'deliveryAddress' => $deliveryAddress,
+                'customerType' => $customerType
+            ]);
 
             return $customer;
         }

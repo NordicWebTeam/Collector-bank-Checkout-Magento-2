@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Webbhuset\CollectorCheckout\Test\Data;
 
-use Webbhuset\CollectorCheckoutSDK\Checkout\Fees\Fee;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Fees;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Fees\Fee;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Fees;
 
 class GetFees
 {

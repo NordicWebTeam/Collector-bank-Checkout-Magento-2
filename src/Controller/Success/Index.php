@@ -11,13 +11,9 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Result\Page;
 use Magento\Framework\View\Result\PageFactory;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Webbhuset\CollectorCheckout\Adapter;
 use Webbhuset\CollectorCheckout\Checkout\Order\ManagerFactory;
-use Webbhuset\CollectorCheckout\Config\Config;
-use Webbhuset\CollectorCheckout\Data\OrderHandlerFactory;
 use Webbhuset\CollectorCheckout\Logger\Logger;
-use Webbhuset\CollectorCheckoutSDK\Config\IframeConfig;
-use Webbhuset\CollectorCheckoutSDK\Iframe;
+use Webbhuset\CollectorCheckout\Service\Checkout\Storage;
 
 /**
  * Class Index
@@ -32,29 +28,14 @@ class Index extends Action
     protected $pageFactory;
 
     /**
-     * @var Adapter
-     */
-    protected $collectorAdapter;
-
-    /**
      * @var ManagerFactory
      */
     protected $orderManager;
 
     /**
-     * @var OrderHandlerFactory
-     */
-    protected $orderDataHandler;
-
-    /**
      * @var Logger
      */
     protected $logger;
-
-    /**
-     * @var Config
-     */
-    protected $config;
 
     /**
      * @var CartRepositoryInterface
@@ -67,37 +48,36 @@ class Index extends Action
     protected $checkoutSession;
 
     /**
+     * @var Storage
+     */
+    private Storage $storage;
+
+    /**
      * Index constructor.
      *
      * @param Context                 $context
-     * @param Adapter                 $collectorAdapter
      * @param ManagerFactory          $orderManager
-     * @param OrderHandlerFactory     $orderDataHandler
      * @param PageFactory             $pageFactory
      * @param Logger                  $logger
-     * @param Config                   $config
      * @param CartRepositoryInterface $quoteRepository
      * @param CheckoutSession         $checkoutSession
+     * @param Storage                 $storage
      */
     public function __construct(
         Context $context,
-        Adapter $collectorAdapter,
         ManagerFactory $orderManager,
-        OrderHandlerFactory $orderDataHandler,
         PageFactory $pageFactory,
         Logger $logger,
-        Config $config,
         CartRepositoryInterface $quoteRepository,
-        CheckoutSession $checkoutSession
+        CheckoutSession $checkoutSession,
+        Storage $storage
     ) {
         $this->pageFactory      = $pageFactory;
-        $this->collectorAdapter = $collectorAdapter;
         $this->orderManager     = $orderManager;
-        $this->orderDataHandler = $orderDataHandler;
         $this->logger           = $logger;
-        $this->config           = $config;
         $this->quoteRepository  = $quoteRepository;
         $this->checkoutSession  = $checkoutSession;
+        $this->storage = $storage;
 
         parent::__construct($context);
     }
@@ -106,8 +86,7 @@ class Index extends Action
      * Execute success page controller action
      *
      * Loads the order by the reference token from the URL, updates the checkout
-     * session with order information, and renders the success page with the
-     * Collector iframe.
+     * session with order information, and renders the success page
      *
      * @return ResponseInterface|ResultInterface|Page
      */
@@ -124,7 +103,7 @@ class Index extends Action
             $quote->setIsActive(0);
             $this->quoteRepository->save($quote);
 
-            $orderId = $order->getId();
+            $orderId = $order->getEntityId();
             $incrementOrderId = $order->getIncrementId();
 
             if (!$this->checkoutSession->getLastOrderId()) {
@@ -136,8 +115,6 @@ class Index extends Action
                     ->setLastOrderStatus($order->getStatus());
             }
         } catch (NoSuchEntityException $e) {
-            $page->getLayout()
-                ->getBlock('collectorbank_success_iframe');
             $this->logger->addCritical(
                 "Failed to load success page - Could not open order by publicToken: $reference. "
                 . $e->getMessage()
@@ -145,24 +122,8 @@ class Index extends Action
             return $page;
         }
 
-        $orderDataHandler = $this->orderDataHandler->create();
-        $publicToken = $orderDataHandler->getPublicToken($order);
-
-        $iframeConfig = new IframeConfig(
-            $publicToken,
-            $this->config->getStyleDataLang(),
-            $this->config->getStyleDataPadding(),
-            $this->config->getStyleDataContainerId(),
-            $this->config->getStyleDataActionColor(),
-            $this->config->getStyleDataActionTextColor()
-        );
-        $iframe = Iframe::getScript($iframeConfig, $this->config->getMode());
-
-        $page->getLayout()
-            ->getBlock('collectorbank_success_iframe')
-            ->setIframe($iframe)
-            ->setSuccessOrder($order);
-
+        $this->storage->setPublicToken((string)$reference);
+        $this->storage->setSuccessOrder($order);
         return $page;
     }
 }

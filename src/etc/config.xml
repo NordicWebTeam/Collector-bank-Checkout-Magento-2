@@ -47,5 +47,12 @@
                 <handling_type>F</handling_type>
             </collectorshipping>
         </carriers>
+        <csp>
+            <mode>
+                <storefront_collectorcheckout_index_index>
+                    <report_only>0</report_only>
+                </storefront_collectorcheckout_index_index>
+            </mode>
+        </csp>
     </default>
 </config>

@@ -29,10 +29,6 @@ class Manager
      */
     protected $customerRepository;
     /**
-     * @var \Magento\Quote\Api\CartRepositoryInterface
-     */
-    protected $quoteRepository;
-    /**
      * @var \Webbhuset\CollectorCheckout\Config\ConfigFactory
      */
     protected $config;
@@ -44,7 +40,6 @@ class Manager
      * @param \Magento\Customer\Api\CustomerRepositoryInterface     $customerRepository
      * @param \Magento\Customer\Api\AccountManagementInterface      $accountManagement
      * @param \Magento\Store\Model\StoreManagerInterface            $storeManager
-     * @param \Magento\Quote\Api\CartRepositoryInterface            $quoteRepository
      * @param \Webbhuset\CollectorCheckout\Config\ConfigFactory $config
      */
     public function __construct(
@@ -52,14 +47,12 @@ class Manager
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
         \Magento\Customer\Api\AccountManagementInterface $accountManagement,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         \Webbhuset\CollectorCheckout\Config\ConfigFactory $config
     ) {
         $this->customerInterface  = $customerInterface;
         $this->accountManagement  = $accountManagement;
         $this->storeManager       = $storeManager;
         $this->customerRepository = $customerRepository;
-        $this->quoteRepository    = $quoteRepository;
         $this->config             = $config;
     }
 
@@ -229,6 +222,5 @@ class Manager
         \Magento\Customer\Api\Data\CustomerInterface $customer
     ) {
         $quote = $quote->setCustomer($customer);
-        $this->quoteRepository->save($quote);
     }
 }

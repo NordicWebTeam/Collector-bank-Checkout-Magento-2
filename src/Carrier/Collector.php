@@ -36,10 +36,6 @@ class Collector extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline im
      */
     protected $quoteRepository;
 
-    /**
-     * @var \Webbhuset\CollectorCheckout\QuoteConverter
-     */
-    protected $quoteConverter;
     private \Webbhuset\CollectorCheckout\Shipment\DeliveryCheckoutData $deliveryCheckoutData;
 
     /**
@@ -81,14 +77,12 @@ class Collector extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline im
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         \Webbhuset\CollectorCheckout\Data\QuoteHandler $quoteDataHandler,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
-        \Webbhuset\CollectorCheckout\QuoteConverter $quoteConverter,
         array $data = []
     ) {
         $this->rateResultFactory        = $rateResultFactory;
         $this->rateResultMethodFactory  = $rateResultMethodFactory;
         $this->quoteDataHandler         = $quoteDataHandler;
         $this->quoteRepository          = $quoteRepository;
-        $this->quoteConverter           = $quoteConverter;
 
         parent::__construct(
             $scopeConfig,

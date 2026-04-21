@@ -8,7 +8,7 @@ use Webbhuset\CollectorCheckout\Adapter;
 use Webbhuset\CollectorCheckout\Config\Config;
 use Webbhuset\CollectorCheckout\Test\Data\GetCart;
 use Webbhuset\CollectorCheckout\Test\Data\GetFees;
-use Webbhuset\CollectorCheckoutSDK\Session;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Session;
 
 class InitiateCheckout
 {

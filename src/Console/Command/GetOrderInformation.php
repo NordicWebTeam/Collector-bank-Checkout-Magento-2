@@ -16,6 +16,7 @@ class GetOrderInformation extends Command
      * @var State
      */
     private $appState;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Test\GetOrderInformation
      */
@@ -24,7 +25,7 @@ class GetOrderInformation extends Command
     public function __construct(
         State $appState,
         \Webbhuset\CollectorCheckout\Test\GetOrderInformation $orderInformation,
-        string $name = null
+        ?string $name = null
     ) {
         parent::__construct($name);
 
@@ -54,9 +55,9 @@ class GetOrderInformation extends Command
         OutputInterface $output
     ) {
         $this->appState->setAreaCode('adminhtml');
-        $orderId = (string)$input->getOption('orderId');
-        $result = json_encode($this->orderInformation->execute($orderId));
-        $output->writeln($result);
+        $orderId = (int)$input->getOption('orderId');
+        $result = $this->orderInformation->execute($orderId);
+        $output->writeln($result->toJson());
 
         return 1;
     }

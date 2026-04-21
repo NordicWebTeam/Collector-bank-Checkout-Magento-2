@@ -16,6 +16,7 @@ class PartActivate extends Command
      * @var State
      */
     private $appState;
+
     /**
      * @var \Webbhuset\CollectorCheckout\Test\PartActivate
      */
@@ -24,7 +25,7 @@ class PartActivate extends Command
     public function __construct(
         State $appState,
         \Webbhuset\CollectorCheckout\Test\PartActivate $partActivate,
-        string $name = null
+        ?string $name = null
     ) {
         parent::__construct($name);
 

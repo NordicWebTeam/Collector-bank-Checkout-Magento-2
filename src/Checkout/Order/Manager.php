@@ -3,10 +3,11 @@
 namespace Webbhuset\CollectorCheckout\Checkout\Order;
 
 use Magento\Sales\Api\Data\OrderInterface;
-use Webbhuset\CollectorCheckout\Config\OrderConfig;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Purchase\Result as PurchaseResult;
-use Webbhuset\CollectorCheckoutSDK\CheckoutData;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Purchase\Result as PurchaseResult;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData;
 use Magento\Checkout\Model\Session as CheckoutSession;
+use Webbhuset\CollectorCheckout\Config\Config;
+use Magento\Newsletter\Model\SubscriptionManagerInterface;
 
 /**
  * Class Manager
@@ -16,11 +17,7 @@ use Magento\Checkout\Model\Session as CheckoutSession;
 class Manager
 {
     /**
-     * @var \Magento\Quote\Api\CartManagementInterface
-     */
-    protected $cartManagement;
-    /**
-     * @var \Magento\Sales\Model\OrderRepository
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
      */
     protected $orderRepository;
     /**
@@ -36,7 +33,7 @@ class Manager
      */
     protected $searchCriteriaBuilder;
     /**
-     * @var \Webbhuset\CollectorCheckout\Config\OrderConfigFactory
+     * @var \Webbhuset\CollectorCheckout\Config\ConfigFactory
      */
     protected $configFactory;
     /**
@@ -44,13 +41,9 @@ class Manager
      */
     protected $orderManagement;
     /**
-     * @var \Magento\Quote\Model\QuoteManagement
+     * @var \Magento\Quote\Api\CartManagementInterface
      */
     protected $quoteManagement;
-    /**
-     * @var ManagerFactory
-     */
-    protected $orderManager;
     /**
      * @var \Magento\Framework\Registry
      */
@@ -68,9 +61,9 @@ class Manager
      */
     protected $logger;
     /**
-     * @var \Magento\Newsletter\Model\SubscriberFactory
+     * @var SubscriptionManagerInterface
      */
-    protected $subscriberFactory;
+    protected SubscriptionManagerInterface $subscriptionManager;
 
     /**
      * @var \Webbhuset\CollectorCheckout\Config\Config|\Webbhuset\CollectorCheckout\Config\ConfigFactory
@@ -81,9 +74,6 @@ class Manager
      * @var SetOrderStatus
      */
     private $setOrderStatus;
-    private $subscriptionManager;
-    private $newsletterModel;
-    private \Magento\Newsletter\Model\Subscriber $newsletterSubscriber;
 
     /**
      * @var CheckoutSession
@@ -91,27 +81,23 @@ class Manager
     protected $checkoutSession;
 
     public function __construct(
-        \Magento\Quote\Api\CartManagementInterface $cartManagement,
-        \Magento\Sales\Model\OrderRepository $orderRepository,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Webbhuset\CollectorCheckout\AdapterFactory $collectorAdapter,
         \Magento\Sales\Api\OrderManagementInterface $orderManagement,
         \Webbhuset\CollectorCheckout\Checkout\Order\SetOrderStatus $setOrderStatus,
-        \Webbhuset\CollectorCheckout\Config\OrderConfigFactory $configFactory,
-        \Magento\Quote\Model\QuoteManagement $quoteManagement,
-        \Webbhuset\CollectorCheckout\Checkout\Order\ManagerFactory $orderManager,
+        \Webbhuset\CollectorCheckout\Config\ConfigFactory $configFactory,
+        \Magento\Quote\Api\CartManagementInterface $quoteManagement,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateTime,
         \Webbhuset\CollectorCheckout\Invoice\AdministrationFactory $invoice,
-        \Magento\Newsletter\Model\Subscriber $newsletterSubscriber,
         \Webbhuset\CollectorCheckout\Logger\Logger $logger,
-        \Magento\Newsletter\Model\SubscriberFactory $subscriberFactory,
+        SubscriptionManagerInterface $subscriptionManager,
         \Webbhuset\CollectorCheckout\Config\Config $config,
         \Webbhuset\CollectorCheckout\Carrier\Manager $carrierManager,
         CheckoutSession $checkoutSession
     ) {
-        $this->cartManagement        = $cartManagement;
         $this->collectorAdapter      = $collectorAdapter;
         $this->orderRepository       = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
@@ -119,16 +105,14 @@ class Manager
         $this->orderManagement       = $orderManagement;
         $this->orderHandler          = $orderHandler;
         $this->quoteManagement       = $quoteManagement;
-        $this->orderManager          = $orderManager;
         $this->registry              = $registry;
         $this->dateTime              = $dateTime;
         $this->invoice               = $invoice;
         $this->logger                = $logger;
-        $this->subscriberFactory     = $subscriberFactory;
+        $this->subscriptionManager   = $subscriptionManager;
         $this->config                = $config;
         $this->carrierManager        = $carrierManager;
         $this->setOrderStatus        = $setOrderStatus;
-        $this->newsletterSubscriber  = $newsletterSubscriber;
         $this->checkoutSession  = $checkoutSession;
     }
 
@@ -192,7 +176,7 @@ class Manager
     public function removeNewOrdersByPublicToken($reference)
     {
         try {
-            $order = $this->orderManager->create()->getOrderByPublicToken($reference);
+            $order = $this->getOrderByPublicToken($reference);
             if (\Magento\Sales\Model\Order::STATE_NEW == $order->getState()) {
                 $this->removeAndCancelOrder($order);
             }
@@ -272,7 +256,7 @@ class Manager
         $collectorBankPrivateId = $this->orderHandler->getPrivateId($order);
         $checkoutAdapter = $this->collectorAdapter->create();
 
-        $config = $this->configFactory->create(['order' => $order]);
+        $config = $this->configFactory->create(['storeId' => (int)$order->getStoreId()]);
         $checkoutData = $checkoutAdapter->acquireCheckoutInformation($config, $collectorBankPrivateId);
 
         $paymentResult = $checkoutData->getPurchase()->getResult()->getResult();
@@ -310,7 +294,7 @@ class Manager
         return $result;
     }
 
-    public function saveAdditionalData(OrderInterface $order, CheckoutData $checkoutData, OrderConfig $config)
+    public function saveAdditionalData(OrderInterface $order, CheckoutData $checkoutData, Config $config)
     {
         if ($config->getIsDeliveryCheckoutActive()) {
             $this->carrierManager->saveShipmentDataOnOrder($order->getId(), $checkoutData);
@@ -329,9 +313,22 @@ class Manager
         }
     }
 
-    public function subscribe(OrderInterface $order)
+    /**
+     * @param OrderInterface $order
+     * @return void
+     */
+    private function subscribe(OrderInterface $order): void
     {
-        $this->newsletterSubscriber->subscribe($order->getCustomerEmail());
+        try {
+            $this->subscriptionManager->subscribe((string)$order->getCustomerEmail(), (int)$order->getStoreId());
+        } catch (\Exception $e) {
+            $message = sprintf(
+                'Failed to add newsletter subscription. OrderId: %s, quoteId: %s',
+                $order->getIncrementId(),
+                $order->getQuoteId()
+            );
+            $this->logger->error($message);
+        }
     }
 
     /**
@@ -347,7 +344,7 @@ class Manager
         CheckoutData $checkoutData
     ):array {
         $orderStatusBefore = $this->orderManagement->getStatus($order->getId());
-        $config = $this->configFactory->create(['order' => $order]);
+        $config = $this->configFactory->create(['storeId' => (int)$order->getStoreId()]);
         $orderStatusAfter  = $config->getOrderStatusAcknowledged();
 
         if ($orderStatusAfter == $orderStatusBefore) {
@@ -380,7 +377,7 @@ class Manager
 
 
         if ($this->orderHandler->getNewsletterSubscribe($order)) {
-            $this->subscriberFactory->create()->subscribe($order->getCustomerEmail());
+            $this->subscribe($order);
         }
 
         return [
@@ -401,7 +398,7 @@ class Manager
         CheckoutData $checkoutData
     ):array {
         $orderStatusBefore = $this->orderManagement->getStatus($order->getId());
-        $orderStatusAfter  = $this->configFactory->create(['order' => $order])->getOrderStatusHolded();
+        $orderStatusAfter  = $this->configFactory->create(['storeId' => (int)$order->getStoreId()])->getOrderStatusHolded();
 
         if ($orderStatusBefore == $orderStatusAfter) {
             return [
@@ -452,7 +449,7 @@ class Manager
         CheckoutData $checkoutData
     ):array {
         $orderStatusBefore = $this->orderManagement->getStatus($order->getId());
-        $orderStatusAfter  = $this->configFactory->create(['order' => $order])->getOrderStatusDenied();
+        $orderStatusAfter  = $this->configFactory->create(['storeId' => (int)$order->getStoreId()])->getOrderStatusDenied();
 
         if ($orderStatusBefore == $orderStatusAfter) {
             return [
@@ -470,7 +467,7 @@ class Manager
 
         $this->updateOrderStatus(
             $order,
-            $this->configFactory->create(['order' => $order])->getOrderStatusDenied(),
+            $this->configFactory->create(['storeId' => (int)$order->getStoreId()])->getOrderStatusDenied(),
             \Magento\Sales\Model\Order::STATE_CANCELED
         );
 
@@ -631,11 +628,11 @@ class Manager
      * Adds payment information
      *
      * @param \Magento\Sales\Api\Data\OrderPaymentInterface $payment
-     * @param \Webbhuset\CollectorCheckoutSDK\Checkout\Purchase  $purchaseData
+     * @param \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Purchase  $purchaseData
      */
     protected function addPaymentInformation(
         \Magento\Sales\Api\Data\OrderPaymentInterface $payment,
-        \Webbhuset\CollectorCheckoutSDK\Checkout\Purchase $purchaseData
+        \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Purchase $purchaseData
     ) {
         $info = [
             'method_title'            => \Webbhuset\CollectorCheckout\Gateway\Config::PAYMENT_METHOD_NAME,

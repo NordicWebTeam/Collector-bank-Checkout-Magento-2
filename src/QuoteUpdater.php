@@ -8,12 +8,10 @@ use Magento\Framework\Exception\State\InputMismatchException;
 use Magento\Quote\Model\Quote as Quote;
 use Webbhuset\CollectorCheckout\Data\ExtractShippingOptionFee;
 use Webbhuset\CollectorCheckout\Shipment\DeliveryCheckoutData;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Customer as SDK;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Customer as SDK;
 
 class QuoteUpdater
 {
-    protected $taxConfig;
-    protected $taxCalculator;
     protected $shippingMethodManagement;
     protected $config;
     protected $session;
@@ -25,9 +23,7 @@ class QuoteUpdater
     private ExtractShippingOptionFee $extractShippingOptionFee;
 
     public function __construct(
-        \Magento\Tax\Model\Config $taxConfig,
-        \Magento\Tax\Model\Calculation $taxCalculator,
-        \Webbhuset\CollectorCheckout\Config\QuoteConfigFactory $config,
+        \Webbhuset\CollectorCheckout\Config\ConfigFactory $config,
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepositoryInterface,
         \Magento\Customer\Model\Session $session,
         ExtractShippingOptionFee $extractShippingOptionFee,
@@ -37,9 +33,7 @@ class QuoteUpdater
         \Magento\Quote\Model\Quote\ShippingAssignment\ShippingAssignmentProcessor $shippingAssignmentProcessor,
         \Magento\Quote\Api\Data\CartExtensionFactory $cartExtensionFactory
     ) {
-        $this->taxConfig                   = $taxConfig;
         $this->config                      = $config;
-        $this->taxCalculator               = $taxCalculator;
         $this->shippingMethodManagement    = $shippingMethodManagement;
         $this->session                     = $session;
         $this->extractShippingOptionFee    = $extractShippingOptionFee;
@@ -52,14 +46,14 @@ class QuoteUpdater
 
     public function setQuoteData(
         Quote $quote,
-        \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
+        \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData
     ) : Quote {
         $customer                   = $checkoutData->getCustomer();
         $collectorInvoiceAddress    = $customer->getInvoiceAddress();
         $billingAddress             = $quote->getBillingAddress();
         $collectorDeliveryAddress   = $customer->getDeliveryAddress();
         $shippingAddress            = $quote->getShippingAddress();
-        $config                     = $this->config->create(['quote' => $quote]);
+        $config                     = $this->config->create(['storeId' => (int)$quote->getStoreId()]);
 
         if ($customer instanceof SDK\PrivateCustomer) {
             $billingAddress = $this->setPrivateAddressData($billingAddress, $customer, $collectorInvoiceAddress)
@@ -124,7 +118,7 @@ class QuoteUpdater
     }
 
     public function isCustomDeliveryAdapter(
-        \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
+        \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData
     ): bool {
         $shipment = $checkoutData->getShipping();
         if (!$shipment) {
@@ -142,7 +136,7 @@ class QuoteUpdater
     }
 
     public function getCustomDeliveryShippingMethod(
-        \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
+        \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData
     ): ?string {
         if (!$this->isCustomDeliveryAdapter($checkoutData)) {
 
@@ -156,7 +150,7 @@ class QuoteUpdater
 
     public function setDeliveryCheckoutData(
         Quote $quote,
-        \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
+        \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData
     ) {
         $shipment = $checkoutData->getShipping()->getData();
         if (!isset($shipment["shipments"][0]['shippingChoice']['id'])) {
@@ -179,7 +173,7 @@ class QuoteUpdater
             return $quote;
         }
         $shippingAddress = $quote->getShippingAddress();
-        $config = $this->config->create(['quote' => $quote]);
+        $config = $this->config->create(['storeId' => (int)$quote->getStoreId()]);
         $countryCode = $config->getCountryCode();
 
         $shippingAddress->setCountryId($countryCode)
@@ -233,7 +227,7 @@ class QuoteUpdater
 
     public function setCustomerData(
         Quote $quote,
-        \Webbhuset\CollectorCheckoutSDK\CheckoutData $checkoutData
+        \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData
     ) : Quote {
         $customer = $checkoutData->getCustomer();
         $customerAddress = $customer->getInvoiceAddress();

@@ -5,29 +5,38 @@ namespace Webbhuset\CollectorCheckout\Oath;
 
 use Magento\Framework\App\CacheInterface;
 use Webbhuset\CollectorCheckout\Config\StoreConfigFactory;
-use Webbhuset\CollectorCheckoutSDK\Adapter\CurlWithAccessKey;
-use Webbhuset\CollectorCheckoutSDK\Adapter\GetAccessKey;
+use Webbhuset\CollectorCheckout\Config\ConfigFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Adapter\GetAccessKeyFactory;
 
 class AccessKeyManager
 {
     const CACHE_TTL = 3600; // 1 hour
     const CACHE_NAME = 'WALLEY_OATH_ACCESS_KEY';
     const CACHE_TAGS = 'WALLEY';
+
     /**
      * @var CacheInterface
      */
     private $cache;
+
     /**
-     * @var StoreConfigFactory
+     * @var ConfigFactory
      */
-    private StoreConfigFactory $storeConfigFactory;
+    private ConfigFactory $configFactory;
+
+    /**
+     * @var GetAccessKeyFactory
+     */
+    private GetAccessKeyFactory $getAccessKeyFactory;
 
     public function __construct(
         CacheInterface $cache,
-        StoreConfigFactory $storeConfig
+        ConfigFactory $configFactory,
+        GetAccessKeyFactory $getAccessKeyFactory
     ) {
         $this->cache = $cache;
-        $this->storeConfigFactory = $storeConfig;
+        $this->configFactory = $configFactory;
+        $this->getAccessKeyFactory = $getAccessKeyFactory;
     }
 
     public function getAccessKeyByStore(int $storeId)
@@ -50,12 +59,10 @@ class AccessKeyManager
 
     public function generateNewAccessKey(int $storeId)
     {
-        /** @var \Webbhuset\CollectorCheckout\Config\StoreConfig $storeConfig */
-        $storeConfig = $this->storeConfigFactory->create();
-        $storeConfig->setScopeStoreId($storeId);
-        $makeAccessKeyRequest = new GetAccessKey(
-            $storeConfig
-        );
+        $config = $this->configFactory->create(['storeId' => $storeId]);
+        $makeAccessKeyRequest = $this->getAccessKeyFactory->create([
+            'config' => $config
+        ]);
 
         return $makeAccessKeyRequest->getAccessKey();
     }

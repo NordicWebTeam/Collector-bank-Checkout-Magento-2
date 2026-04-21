@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Webbhuset\CollectorCheckout\Helper;
 
-use Webbhuset\CollectorPaymentSDK\Invoice\Article\ArticleList as ArticleList;
+use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList as ArticleList;
 
 class GetMatchingArticles
 {

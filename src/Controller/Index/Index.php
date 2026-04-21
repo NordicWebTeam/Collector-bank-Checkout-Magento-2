@@ -2,85 +2,55 @@
 
 namespace Webbhuset\CollectorCheckout\Controller\Index;
 
+use Webbhuset\CollectorCheckout\Service\Quote\Initializer;
+use Magento\Checkout\Model\Session;
+use Magento\Framework\View\Result\PageFactory;
+use Webbhuset\CollectorCheckout\Service\Checkout\Storage;
+
 /**
- * Class Index
- *
- * @package Webbhuset\CollectorCheckout\Controller\Index
+ * Checkout index controller
  */
 class Index extends \Magento\Framework\App\Action\Action
 {
     /**
-     * @var \Magento\Framework\View\Result\PageFactory
+     * @var PageFactory
      */
-    protected $pageFactory;
+    private PageFactory $pageFactory;
+
     /**
      * @var \Magento\Checkout\Model\Session
      */
-    protected $checkoutSession;
+    private Session $checkoutSession;
+
     /**
-     * @var \Webbhuset\CollectorCheckout\Adapter
+     * @var Initializer
      */
-    protected $collectorAdapter;
+    private Initializer $quoteInitializer;
+
     /**
-     * @var \Webbhuset\CollectorCheckout\Data\QuoteHandler
+     * @var Storage
      */
-    protected $quoteDataHandler;
-    /**
-     * @var \Webbhuset\CollectorCheckout\QuoteConverter
-     */
-    protected $quoteConverter;
-    /**
-     * @var \Magento\Quote\Api\CartRepositoryInterface
-     */
-    protected $quoteRepository;
-    /**
-     * @var \Webbhuset\CollectorCheckout\Config\Config
-     */
-    protected $config;
-    /**
-     * @var \Webbhuset\CollectorCheckout\QuoteValidator
-     */
-    protected $quoteValidator;
-    /**
-     * @var \Webbhuset\CollectorCheckout\QuoteComparerFactory
-     */
-    protected $quoteComparer;
+    private Storage $storage;
 
     /**
      * Index constructor.
      *
      * @param \Magento\Framework\App\Action\Context                 $context
      * @param \Magento\Checkout\Model\Session                       $checkoutSession
-     * @param \Webbhuset\CollectorCheckout\Adapter              $collectorAdapter
-     * @param \Webbhuset\CollectorCheckout\Data\QuoteHandler    $quoteDataHandler
-     * @param \Webbhuset\CollectorCheckout\QuoteConverter       $quoteConverter
      * @param \Magento\Framework\View\Result\PageFactory            $pageFactory
-     * @param \Magento\Quote\Api\CartRepositoryInterface            $quoteRepository
-     * @param \Webbhuset\CollectorCheckout\Config\Config        $config
-     * @param \Webbhuset\CollectorCheckout\QuoteValidator       $quoteValidator
-     * @param \Webbhuset\CollectorCheckout\QuoteComparerFactory $quoteComparer
+     * @param Initializer $quoteInitializer
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Checkout\Model\Session $checkoutSession,
-        \Webbhuset\CollectorCheckout\Adapter $collectorAdapter,
-        \Webbhuset\CollectorCheckout\Data\QuoteHandler $quoteDataHandler,
-        \Webbhuset\CollectorCheckout\QuoteConverter $quoteConverter,
         \Magento\Framework\View\Result\PageFactory $pageFactory,
-        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
-        \Webbhuset\CollectorCheckout\Config\Config $config,
-        \Webbhuset\CollectorCheckout\QuoteValidator $quoteValidator,
-        \Webbhuset\CollectorCheckout\QuoteComparerFactory $quoteComparer
+        Initializer $quoteInitializer,
+        Storage $storage
     ) {
         $this->pageFactory      = $pageFactory;
         $this->checkoutSession  = $checkoutSession;
-        $this->collectorAdapter = $collectorAdapter;
-        $this->quoteDataHandler = $quoteDataHandler;
-        $this->quoteConverter   = $quoteConverter;
-        $this->quoteRepository  = $quoteRepository;
-        $this->config           = $config;
-        $this->quoteValidator   = $quoteValidator;
-        $this->quoteComparer    = $quoteComparer;
+        $this->quoteInitializer = $quoteInitializer;
+        $this->storage = $storage;
 
         return parent::__construct($context);
     }
@@ -94,95 +64,23 @@ class Index extends \Magento\Framework\App\Action\Action
     {
         $page = $this->pageFactory->create();
         $quote = $this->checkoutSession->getQuote();
+        $customerType = $this->getRequest()->getParam('customerType');
+        $customerType = $customerType ? (int)$customerType : null;
+        $initResult = $this->quoteInitializer->execute($quote, $customerType);
 
-        if (!$this->quoteComparer->create()->isCurrencyMatching()) {
+        if (Initializer::ERROR_CODE_CURRENCY === $initResult->getError()) {
             $this->messageManager->addErrorMessage(__('Currencies are not matching with what is allowed in Walley checkout'));
         }
 
-        $quoteCheckoutErrors = $this->quoteValidator->getErrors($quote);
-        if (!empty($quoteCheckoutErrors)) {
+        if (Initializer::ERROR_CODE_QUOTE === $initResult->getError()) {
             return $this->resultRedirectFactory->create()->setPath('checkout/index');
         }
 
-        $customerType = $this->getRequest()->getParam('customerType');
-        $customerType = $customerType ? (int) $customerType : null;
-
-        if ($this->needsForceReinit($quote, $customerType)) {
-            $publicToken = $this->collectorAdapter->initWithCustomerType($quote, $customerType);
-        } else {
-            $publicToken = $this->collectorAdapter->initOrSync($quote);
-        }
-
-        $iframeConfig = new \Webbhuset\CollectorCheckoutSDK\Config\IframeConfig(
-            $publicToken,
-            $this->config->getStyleDataLang(),
-            $this->config->getStyleDataPadding(),
-            $this->config->getStyleDataContainerId(),
-            $this->config->getStyleDataActionColor(),
-            $this->config->getStyleDataActionTextColor()
-        );
-        $iframe = \Webbhuset\CollectorCheckoutSDK\Iframe::getScript($iframeConfig, $this->config->getMode());
-
-        $iframeSrc = $iframeConfig->getSrc($this->config->getMode());
-        $iframeToken = $iframeConfig->getDataToken();
-        $iframeLang = $iframeConfig->getDataLang();
-        $iframeActionColor = $iframeConfig->getDataActionColor();
-        $iframeActionTextColor = $iframeConfig->getDataActionTextColor();
-
-        if ($this->config->getIsDeliveryCheckoutActive()) {
+        if ($initResult->getDeliveryCheckoutActive()) {
             $page->getConfig()->addBodyClass('delivery-checkout');
         }
 
-        if ($this->config->getDisplayCheckoutVersion() != 'v1') {
-            $dataVersion = 'v2';
-        } else {
-            $dataVersion = 'v1';
-        }
-
-        $block = $page
-            ->getLayout()
-            ->getBlock('collectorbank_checkout_iframe')
-            ->setIframe($iframe)
-            ->setDataToken($iframeToken)
-            ->setDataVersion($dataVersion)
-            ->setDataLang($iframeLang)
-            ->setDataActionColor($iframeActionColor)
-            ->setDataActionTextColor($iframeActionTextColor)
-            ->setIframeSrc($iframeSrc);
-
+        $this->storage->setPublicToken($initResult->getPublicToken());
         return $page;
-    }
-
-    /**
-     * Check if we need to reinit iframe
-     *
-     * @param \Magento\Quote\Model\Quote $quote
-     * @param integer $customerType
-     * @return bool
-     */
-    public function needsForceReinit(\Magento\Quote\Model\Quote $quote, int $customerType = null)
-    {
-        $canChangeCustomerType = \Webbhuset\CollectorCheckout\Config\Source\Customer\Type::BOTH_CUSTOMERS == $this->config->getCustomerTypeAllowed();
-
-        if (!$canChangeCustomerType) {
-            return false;
-        }
-
-        $availableCustomerTypes = [
-            \Webbhuset\CollectorCheckout\Config\Source\Customer\Type::PRIVATE_CUSTOMERS,
-            \Webbhuset\CollectorCheckout\Config\Source\Customer\Type::BUSINESS_CUSTOMERS,
-        ];
-
-        if (!$customerType || !in_array($customerType, $availableCustomerTypes)) {
-            return false;
-        }
-
-        $currentCustomerType = (int) $this->quoteDataHandler->getCustomerType($quote);
-
-        if ($currentCustomerType === $customerType) {
-            return false;
-        }
-
-        return true;
     }
 }

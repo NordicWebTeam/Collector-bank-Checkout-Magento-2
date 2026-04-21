@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Webbhuset\CollectorCheckout\Test\Data;
 
-use Webbhuset\CollectorCheckoutSDK\Checkout\Cart;
-use Webbhuset\CollectorCheckoutSDK\Checkout\Cart\Item;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Cart;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Cart\Item;
 
 class GetCart
 {
