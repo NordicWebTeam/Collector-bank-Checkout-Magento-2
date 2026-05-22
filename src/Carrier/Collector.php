@@ -2,6 +2,9 @@
 
 namespace Webbhuset\CollectorCheckout\Carrier;
 
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Api\Data\CartItemInterface;
+
 /**
  * Class Collector
  *
@@ -31,10 +34,6 @@ class Collector extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline im
      * @var \Magento\Quote\Model\Quote\Address\RateResult\MethodFactory
      */
     protected $rateResultMethodFactory;
-    /**
-     * @var \Magento\Quote\Api\CartRepositoryInterface
-     */
-    protected $quoteRepository;
 
     private \Webbhuset\CollectorCheckout\Shipment\DeliveryCheckoutData $deliveryCheckoutData;
 
@@ -76,13 +75,11 @@ class Collector extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline im
         \Magento\Directory\Helper\Data $directoryData,
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         \Webbhuset\CollectorCheckout\Data\QuoteHandler $quoteDataHandler,
-        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         array $data = []
     ) {
         $this->rateResultFactory        = $rateResultFactory;
         $this->rateResultMethodFactory  = $rateResultMethodFactory;
         $this->quoteDataHandler         = $quoteDataHandler;
-        $this->quoteRepository          = $quoteRepository;
 
         parent::__construct(
             $scopeConfig,
@@ -132,16 +129,15 @@ class Collector extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline im
     /**
      * Get shipping method based on a quote and the information in collector checkout data
      *
-     * @param int $quoteId
+     * @param CartInterface $quote
      * @return array|\Magento\Quote\Model\Quote\Address\RateResult\Method
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getMethodForQuote(int $quoteId)
+    public function getMethodForQuote(CartInterface $quote)
     {
         if ($this->deliveryCheckoutData->getData()) {
             $shippingData = $this->deliveryCheckoutData->getData();
         } else {
-            $quote = $this->quoteRepository->get($quoteId);
             $shippingData = $this->quoteDataHandler->getDeliveryCheckoutData($quote);
         }
 
@@ -172,19 +168,22 @@ class Collector extends \Magento\Shipping\Model\Carrier\AbstractCarrierOnline im
         $result = $this->rateResultFactory->create();
 
         $quoteItems = $request->getAllItems();
-        if (empty($quoteItems) || !isset($quoteItems[0])){
-
+        if (!$quoteItems || !is_array($quoteItems)) {
             return $result;
         }
 
-        /** @var \Magento\Quote\Model\Quote\Item\Interceptor $quote */
-        $quote = $quoteItems[0];
-        $quoteId = $quote->getQuoteId();
-        if (!$quoteId) {
+        $quoteItem = reset($quoteItems);
+        if (!$quoteItem || !($quoteItem instanceof CartItemInterface)) {
             return $result;
         }
 
-        $method = $this->getMethodForQuote($quoteId);
+        /** @var CartItemInterface|\Magento\Quote\Model\Quote\Item $quoteItem */
+        $quote = $quoteItem->getQuote();
+        if (!$quote || !$quote->getId()) {
+            return $result;
+        }
+
+        $method = $this->getMethodForQuote($quote);
         if (!empty($method)) {
             $result->append($method);
         }
