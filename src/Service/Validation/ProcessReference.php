@@ -168,7 +168,7 @@ class ProcessReference
             // Save quote, place order
             $this->quoteRepository->save($quote);
             $orderId = (string)$orderManager->createOrder($quote);
-            $validationResult->setMessage($orderId);
+            $validationResult->setOrderReference($orderId);
         } catch (CouldNotSaveException $e) {
             $this->logger->addCritical(
                 sprintf(

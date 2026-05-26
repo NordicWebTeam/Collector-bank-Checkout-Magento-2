@@ -48,8 +48,17 @@ class Index extends \Magento\Framework\App\Action\Action
 
         $jsonResult->setHeader("Content-Type", "application/json", true);
         $jsonResult->setHttpResponseCode($result->getHttpCode());
-        $jsonResult->setData($result->getData());
 
+        // Successful validation – expose orderReference
+        if ($result->isSuccess()) {
+            $jsonResult->setData(['orderReference' => $result->getOrderReference()]);
+            return $jsonResult;
+        }
+
+        // Unsuccessful validation – expose message
+        $jsonResult->setData([
+            'message' => $result->getMessage()
+        ]);
         return $jsonResult;
     }
 }
