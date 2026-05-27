@@ -13,6 +13,8 @@ class ValidationResult extends DataObject
 
     const KEY_MESSAGE = 'message';
 
+    const KEY_ORDER_REFERENCE = 'order_reference';
+
     public function setHttpCode(int $code): self
     {
         return $this->setData(self::KEY_HTTP_CODE, $code);
@@ -27,6 +29,8 @@ class ValidationResult extends DataObject
     }
 
     /**
+     * Set message describing an unsuccessful validation result
+     *
      * @param string $message
      * @return self
      */
@@ -36,11 +40,34 @@ class ValidationResult extends DataObject
     }
 
     /**
+     * Get message describing unsuccessful validation
+     *
      * @return string
      */
     public function getMessage(): string
     {
         return (string)$this->getData(self::KEY_MESSAGE);
+    }
+
+    /**
+     * Set order reference in a successful validation
+     *
+     * @param string $reference
+     * @return self
+     */
+    public function setOrderReference(string $reference): self
+    {
+        return $this->setData(self::KEY_ORDER_REFERENCE, $reference);
+    }
+
+    /**
+     * Get order reference of successful validation
+     *
+     * @return string
+     */
+    public function getOrderReference(): string
+    {
+        return (string)$this->getData(self::KEY_ORDER_REFERENCE);
     }
 
     /**
