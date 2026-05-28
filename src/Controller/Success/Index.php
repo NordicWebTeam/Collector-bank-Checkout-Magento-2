@@ -100,8 +100,10 @@ class Index extends Action
             $order = $orderManager->getOrderByPublicToken($reference);
             $quoteId = $order->getQuoteId();
             $quote = $this->quoteRepository->get($quoteId);
-            $quote->setIsActive(0);
-            $this->quoteRepository->save($quote);
+            if ($quote->getIsActive()) {
+                $quote->setIsActive(0);
+                $this->quoteRepository->save($quote);
+            }
 
             $orderId = $order->getEntityId();
             $incrementOrderId = $order->getIncrementId();
