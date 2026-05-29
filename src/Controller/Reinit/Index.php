@@ -3,7 +3,9 @@
 namespace Webbhuset\CollectorCheckout\Controller\Reinit;
 
 use Magento\Framework\Exception\NoSuchEntityException;
+use Webbhuset\CollectorCheckout\Adapter;
 use Webbhuset\CollectorCheckout\Config\ConfigFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Status;
 
 class Index extends \Magento\Framework\App\Action\Action
 {
@@ -22,6 +24,8 @@ class Index extends \Magento\Framework\App\Action\Action
      */
     private $orderManager;
 
+    private Adapter $adapter;
+
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Checkout\Model\Session $checkoutSession,
@@ -29,7 +33,8 @@ class Index extends \Magento\Framework\App\Action\Action
         \Webbhuset\CollectorCheckout\Checkout\Order\ManagerFactory $orderManager,
         \Webbhuset\CollectorCheckout\Config\ConfigFactory $configFactory,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
-        \Magento\Quote\Model\ResourceModel\Quote\Collection $quoteCollection
+        \Magento\Quote\Model\ResourceModel\Quote\Collection $quoteCollection,
+        Adapter $adapter
     ) {
         parent::__construct($context);
 
@@ -39,6 +44,7 @@ class Index extends \Magento\Framework\App\Action\Action
         $this->quoteCollection   = $quoteCollection;
         $this->configFactory     = $configFactory;
         $this->orderManager      = $orderManager;
+        $this->adapter           = $adapter;
     }
 
     public function execute()
@@ -70,6 +76,15 @@ class Index extends \Magento\Framework\App\Action\Action
             }
         } catch (NoSuchEntityException $e) {
 
+        }
+
+        $checkoutData = $this->adapter->acquireCheckoutInformationFromQuote($quote);
+        if ($checkoutData->getStatus()->getStatus() === Status::PURCHASE_COMPLETED) {
+            return $this->createResult(
+                'Quote not restored',
+                200,
+                false
+            );
         }
         if ($quote->getIsActive()) {
             return $this->createResult(

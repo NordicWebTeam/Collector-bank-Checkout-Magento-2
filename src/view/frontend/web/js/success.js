@@ -11,10 +11,12 @@ define([
             if ($.mage.cookies.get('collectorbank_public_id')) {
                 $.mage.cookies.clear('collectorbank_public_id');
             }
-            var sections = ['cart'];
 
-            customerData.invalidate(sections);
-            customerData.reload(sections, true);
+            customerData.getInitCustomerData().done(function () {
+                var sections = ['cart'];
+                customerData.invalidate(sections);
+                customerData.reload(['cart'], true);
+            });
         },
     });
 });
