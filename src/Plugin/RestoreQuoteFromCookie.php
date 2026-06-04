@@ -40,6 +40,11 @@ class RestoreQuoteFromCookie
             return null;
         }
 
+        $successfulPublicId = (string)$this->checkoutSession->getData('collectorbank_success_public_id');
+        if ($successfulPublicId && $successfulPublicId === $publicId) {
+            return null;
+        }
+
         $currentQuote = $this->checkoutSession->getQuote();
 
         if (!$currentQuote->getId() || !$currentQuote->getIsActive()) {
