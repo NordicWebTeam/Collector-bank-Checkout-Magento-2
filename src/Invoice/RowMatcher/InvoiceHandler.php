@@ -102,6 +102,5 @@ class InvoiceHandler
         \Magento\Sales\Api\Data\OrderInterface $order
     ):void {
         $this->orderHandler->setDecimalRoundingInvoiced($order);
-        $this->orderRepository->save($order);
     }
 }
