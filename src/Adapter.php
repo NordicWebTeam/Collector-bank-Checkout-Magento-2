@@ -356,32 +356,53 @@ class Adapter
         $fees = $this->quoteConverter->getFees($quote);
         $privateId = $this->quoteDataHandler->getPrivateId($quote);
 
-        try {
-            if (!empty($fees->toArray())) {
-                $collectorSession->setPrivateId($privateId)
-                    ->updateFees($fees);
+        $maxRetries = 3;
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            try {
+                if (!empty($fees->toArray())) {
+                    $collectorSession->setPrivateId($privateId)
+                        ->updateFees($fees);
+                }
+                return $collectorSession;
+            } catch (\Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Errors\ResponseError $e) {
+                if ((int)$e->getCode() === 423 && $attempt < $maxRetries) {
+                    usleep(300000 * $attempt);
+                    continue;
+                }
+
+                if ((int)$e->getCode() === 900) {
+                    $this->logger->addInfo(
+                        'Skipping fee update because purchase is already completed.',
+                        [
+                            'private_id' => $privateId,
+                            'exception_code' => $e->getCode(),
+                            'exception_message' => $e->getMessage(),
+                        ]
+                    );
+                    return $collectorSession;
+                }
+
+                $errorMsg = $e->getErrorLogMessageFromResponse();
+                $responseBody = $e->getResponseBody();
+                $response = $e->getResponse();
+                $request = $e->getRequest();
+
+                $logContext = [
+                    'error_message' => $errorMsg,
+                    'http_status' => $response['status'] ?? 'unknown',
+                    'response_body' => $responseBody,
+                    'response_header' => $response['header'] ?? '',
+                    'request_data' => is_array($request) ? $request : json_decode($request, true),
+                    'exception_code' => $e->getCode(),
+                    'exception_message' => $e->getMessage(),
+                ];
+
+                $this->logger->addCritical("Response error when updating fees. " . $errorMsg, $logContext);
+
+                throw new ResponseErrorOnCartUpdate(
+                    __('Please refresh the page and try again.')
+                );
             }
-        } catch (\Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Errors\ResponseError $e) {
-            $errorMsg = $e->getErrorLogMessageFromResponse();
-            $responseBody = $e->getResponseBody();
-            $response = $e->getResponse();
-            $request = $e->getRequest();
-
-            $logContext = [
-                'error_message' => $errorMsg,
-                'http_status' => $response['status'] ?? 'unknown',
-                'response_body' => $responseBody,
-                'response_header' => $response['header'] ?? '',
-                'request_data' => is_array($request) ? $request : json_decode($request, true),
-                'exception_code' => $e->getCode(),
-                'exception_message' => $e->getMessage(),
-            ];
-
-            $this->logger->addCritical("Response error when updating fees. " . $errorMsg, $logContext);
-
-            throw new ResponseErrorOnCartUpdate(
-                __('Please refresh the page and try again.')
-            );
         }
 
         return $collectorSession;
@@ -403,32 +424,53 @@ class Adapter
         $cart = $this->quoteConverter->getCart($quote);
         $privateId = $this->quoteDataHandler->getPrivateId($quote);
 
-        try {
-            if (!empty($cart->getItems())) {
-                $collectorSession->setPrivateId($privateId)
-                    ->updateCart($cart);
+        $maxRetries = 3;
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            try {
+                if (!empty($cart->getItems())) {
+                    $collectorSession->setPrivateId($privateId)
+                        ->updateCart($cart);
+                }
+                return $collectorSession;
+            } catch (\Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Errors\ResponseError $e) {
+                if ((int)$e->getCode() === 423 && $attempt < $maxRetries) {
+                    usleep(300000 * $attempt);
+                    continue;
+                }
+
+                if ((int)$e->getCode() === 900) {
+                    $this->logger->addInfo(
+                        'Skipping cart update because purchase is already completed.',
+                        [
+                            'private_id' => $privateId,
+                            'exception_code' => $e->getCode(),
+                            'exception_message' => $e->getMessage(),
+                        ]
+                    );
+                    return $collectorSession;
+                }
+
+                $errorMsg = $e->getErrorLogMessageFromResponse();
+                $responseBody = $e->getResponseBody();
+                $response = $e->getResponse();
+                $request = $e->getRequest();
+
+                $logContext = [
+                    'error_message' => $errorMsg,
+                    'http_status' => $response['status'] ?? 'unknown',
+                    'response_body' => $responseBody,
+                    'response_header' => $response['header'] ?? '',
+                    'request_data' => is_array($request) ? $request : json_decode($request, true),
+                    'exception_code' => $e->getCode(),
+                    'exception_message' => $e->getMessage(),
+                ];
+
+                $this->logger->addCritical("Response error when updating cart. " . $errorMsg, $logContext);
+
+                throw new ResponseErrorOnCartUpdate(
+                    __('Please refresh the page and try again.')
+                );
             }
-        } catch (\Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Errors\ResponseError $e) {
-            $errorMsg = $e->getErrorLogMessageFromResponse();
-            $responseBody = $e->getResponseBody();
-            $response = $e->getResponse();
-            $request = $e->getRequest();
-
-            $logContext = [
-                'error_message' => $errorMsg,
-                'http_status' => $response['status'] ?? 'unknown',
-                'response_body' => $responseBody,
-                'response_header' => $response['header'] ?? '',
-                'request_data' => is_array($request) ? $request : json_decode($request, true),
-                'exception_code' => $e->getCode(),
-                'exception_message' => $e->getMessage(),
-            ];
-
-            $this->logger->addCritical("Response error when updating cart. " . $errorMsg, $logContext);
-
-            throw new ResponseErrorOnCartUpdate(
-                __('Please refresh the page and try again.')
-            );
         }
 
         return $collectorSession;

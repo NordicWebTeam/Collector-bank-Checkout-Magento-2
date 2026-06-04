@@ -116,6 +116,8 @@ class Index extends Action
                     ->setLastRealOrderId($incrementOrderId)
                     ->setLastOrderStatus($order->getStatus());
             }
+
+            $this->checkoutSession->setData('collectorbank_success_public_id', (string)$reference);
         } catch (NoSuchEntityException $e) {
             $this->logger->addCritical(
                 "Failed to load success page - Could not open order by publicToken: $reference. "
