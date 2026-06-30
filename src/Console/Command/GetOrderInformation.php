@@ -53,7 +53,7 @@ class GetOrderInformation extends Command
     protected function execute(
         InputInterface $input,
         OutputInterface $output
-    ) {
+    ): int {
         $this->appState->setAreaCode('adminhtml');
         $orderId = (int)$input->getOption('orderId');
         $result = $this->orderInformation->execute($orderId);

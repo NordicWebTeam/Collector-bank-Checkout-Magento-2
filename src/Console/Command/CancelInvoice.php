@@ -53,7 +53,7 @@ class CancelInvoice extends Command
     protected function execute(
         InputInterface $input,
         OutputInterface $output
-    ) {
+    ): int {
         $this->appState->setAreaCode('adminhtml');
         $orderId = (string)$input->getOption('orderId');
         $result = json_encode($this->cancelInvoice->execute($orderId));
