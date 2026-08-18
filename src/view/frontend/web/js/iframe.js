@@ -12,6 +12,7 @@ define([
     function resume() {
          if (suspendActionHaveBeenTriggered === true) {
             window.collector.checkout.api.resume();
+            suspendActionHaveBeenTriggered = false;
          }
     };
 
