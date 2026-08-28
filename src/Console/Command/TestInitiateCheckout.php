@@ -53,7 +53,7 @@ class TestInitiateCheckout extends Command
     protected function execute(
         InputInterface $input,
         OutputInterface $output
-    ) {
+    ): int {
         $this->appState->setAreaCode('adminhtml');
         $storeId = (int)$input->getOption('storeId');
         $result = $this->initiateCheckout->execute($storeId);
