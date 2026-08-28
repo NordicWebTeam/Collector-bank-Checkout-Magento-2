@@ -76,7 +76,6 @@ class GetAccessKey
         $httpCode   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error      = curl_error($ch);
         $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-        curl_close($ch);
 
         if ($error) {
             throw new RequestError($body, 0, $error);
