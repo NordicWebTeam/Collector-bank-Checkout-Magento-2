@@ -214,6 +214,56 @@ Below is a complete flow chart of the order states and statuses:
 
 ![alt text](images/checkout-flow-chart.png "Order payment review")
 
+#### Voyado vouchers (Loyalty Booster)
+
+When Loyalty Booster with the Voyado adapter is active, customers can apply their Voyado bonus vouchers directly in Walley Checkout. The extension handles these vouchers in Magento without any configuration. Orders without vouchers are not affected.
+
+###### How vouchers reach Magento
+
+Walley reports the vouchers applied in the checkout (`appliedVouchers` in the checkout information). The extension picks them up whenever the checkout is updated, including when a voucher is applied or removed, and again in the validation callback right before the order is created. The cart summary next to the checkout shows a **Voyado voucher** row, and the order is created with the voucher deducted from its grand total.
+
+If the vouchers are worth more than the order, they cover the products first and then shipping, and the order total becomes 0.
+
+###### VAT
+
+Vouchers are handled as a discount: they reduce the VAT base. The extension calculates the VAT part of the voucher per tax rate and deducts it from the order's VAT, regardless of Magento's discount tax settings. The VAT breakdown of the order (as shown in admin and used in tax reports) is reduced accordingly.
+
+###### Where the voucher is shown
+
+A **Voyado voucher** row is shown with the totals of orders, invoices and credit memos: in admin, in the customer account, in print views, in order, invoice and credit memo emails, and in invoice and credit memo PDFs. The row shows the voucher excluding VAT when the store shows the subtotal excluding VAT, and including VAT otherwise.
+
+###### Invoicing (activation) of orders with vouchers
+
+When an order with a voucher is invoiced in parts, each invoice uses as much of the remaining voucher value as it can carry, as Walley prefers. Example: an order with SKU-A (50 kr) and SKU-B (150 kr) and a 60 kr voucher. Invoicing only SKU-A deducts 50 kr of the voucher, so that invoice comes to 0 kr. The remaining 10 kr is deducted on the next invoice.
+
+This applies when all products and shipping on the order have the same VAT rate. For orders with mixed VAT rates, the voucher is instead split over the invoices in proportion to the invoiced items, so that the invoices always add up to the order in amount and VAT.
+
+Orders with vouchers are activated in Walley with rows built from the Magento invoice: one row per product, the voucher per product, shipping, and a rounding row when needed. In the Walley merchant portal these rows replace the order rows for the activated part.
+
+**Note**: Activate orders with vouchers from Magento. After a part activation, the merchant portal shows the remaining, not yet activated amount as a single row without VAT.
+
+###### Refunding (crediting) orders with vouchers
+
+Credit memos refund the voucher in proportion to the credited items on the invoice they belong to. An item that was paid entirely with the voucher is refunded with 0 kr; nothing is sent to Walley for a refund without an amount.
+
+Magento only accepts credit memos with a grand total of 0 when **Stores > Configuration > Sales > Sales > Allow Zero GrandTotal for Creditmemo** is set to Yes. Enable it if you want to register returns of items paid entirely with vouchers.
+
+The following can not be refunded online for orders with vouchers. Magento shows an error, and the refund has to be made in the Walley merchant portal instead:
+
+- Partial refunds of shipping (refund all of the shipping or none of it)
+- Adjustment Refund and Adjustment Fee
+- Credit memos that are not created from an invoice
+- Decimal quantities
+
+Whether the voucher value is returned to the customer's Voyado account on refunds is handled by Walley and Voyado.
+
+###### Technical details
+
+- Vouchers and their amounts per order, invoice, credit memo and item are stored in the extension's own tables (`walley_voucher`, `walley_voucher_order`, `walley_voucher_invoice`, `walley_voucher_creditmemo` and their `_item` tables. Run `bin/magento setup:upgrade` after installing or updating the extension.
+- The vouchers of an order are available in the REST API as the extension attribute `walley_vouchers` on orders (voucher id, code, description, face value and deducted amount).
+- When the vouchers Walley reports after the purchase differ from the ones on the order, this is logged in `var/log/collectorbank.log` and added as a comment on the order.
+- Fixed product taxes (FPT/WEEE) are not covered by vouchers.
+
 #### Debugging the checkout
 
 For debugging purposes a dedicated error log is stored for errors related to the checkout in:
