@@ -246,7 +246,7 @@ Orders with vouchers are activated in Walley with rows built from the Magento in
 
 Credit memos refund the voucher in proportion to the credited items on the invoice they belong to. An item that was paid entirely with the voucher is refunded with 0 kr; nothing is sent to Walley for a refund without an amount.
 
-Magento only accepts credit memos with a grand total of 0 when **Stores > Configuration > Sales > Sales > Allow Zero GrandTotal for Creditmemo** is set to Yes. Enable it if you want to register returns of items paid entirely with vouchers.
+Magento only accepts credit memos with a grand total of 0 when **Stores > Configuration > Sales > Sales > Allow Zero GrandTotal > Allow Zero GrandTotal for Creditmemo** is set to Yes. Enable it if you want to register returns of items paid entirely with vouchers.
 
 The following can not be refunded online for orders with vouchers. Magento shows an error, and the refund has to be made in the Walley merchant portal instead:
 
