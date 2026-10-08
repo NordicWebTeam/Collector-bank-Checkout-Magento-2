@@ -2,9 +2,13 @@
 
 namespace Webbhuset\CollectorCheckout;
 
+use Magento\Framework\App\ObjectManager;
 use Webbhuset\CollectorCheckout\Exception\CanNotInitiateIframeException;
+use Webbhuset\CollectorCheckout\Model\Voucher\VoucherApplier;
 use Webbhuset\CollectorCheckout\Exception\ResponseErrorOnCartUpdate;
 use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Adapter\CurlWithAccessKeyFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Errors\ValidationError;
 use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Session;
 use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\SessionFactory;
 
@@ -60,6 +64,8 @@ class Adapter
      */
     private CurlWithAccessKeyFactory $curlWithAccessKeyFactory;
 
+    private VoucherApplier $voucherApplier;
+
     /**
      * Adapter constructor.
      *
@@ -70,6 +76,7 @@ class Adapter
      * @param Data\OrderHandler                          $orderDataHandler
      * @param Config\Config                              $config
      * @param Logger\Logger                              $logger
+     * @param VoucherApplier|null                        $voucherApplier
      */
     public function __construct(
         \Webbhuset\CollectorCheckout\QuoteConverter $quoteConverter,
@@ -80,7 +87,8 @@ class Adapter
         \Webbhuset\CollectorCheckout\Config\ConfigFactory $configFactory,
         \Webbhuset\CollectorCheckout\Logger\Logger $logger,
         SessionFactory $sessionFactory,
-        CurlWithAccessKeyFactory $curlWithAccessKeyFactory
+        CurlWithAccessKeyFactory $curlWithAccessKeyFactory,
+        ?VoucherApplier $voucherApplier = null
     ) {
         $this->quoteConverter       = $quoteConverter;
         $this->configFactory        = $configFactory;
@@ -91,6 +99,7 @@ class Adapter
         $this->orderDataHandler     = $orderDataHandler;
         $this->sessionFactory       = $sessionFactory;
         $this->curlWithAccessKeyFactory = $curlWithAccessKeyFactory;
+        $this->voucherApplier = $voucherApplier ?? ObjectManager::getInstance()->get(VoucherApplier::class);
     }
 
     /**
@@ -159,6 +168,7 @@ class Adapter
         $shippingAddress = $quote->getShippingAddress();
         $checkoutData = $this->acquireCheckoutInformationFromQuote($quote);
         $quote = $this->quoteUpdater->setQuoteData($quote, $checkoutData);
+        $vouchersChanged = $this->applyVouchers($quote, $checkoutData);
 
         $rate = $shippingAddress->getShippingRateByCode($shippingAddress->getShippingMethod());
         if (!$rate || !$shippingAddress->getShippingMethod()) {
@@ -168,16 +178,44 @@ class Adapter
         if ('collectorCheckoutShippingUpdated' === $eventName
             && $config->getIsDeliveryCheckoutActive()
         ) {
+            $this->collectTotalsIfVouchersChanged($quote, $vouchersChanged);
             $this->quoteRepository->save($quote);
             $quote->getShippingAddress()->setCollectShippingRates(true)->collectShippingRates();
             return $quote;
         }
         if($checkoutData->getStatus()->getStatus() !== \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Status::COMMITTED_TO_PURCHASE) {
+            $this->collectTotalsIfVouchersChanged($quote, $vouchersChanged);
             $this->updateFees($quote);
             $this->updateCart($quote);
             $this->quoteRepository->save($quote);
         }
         return $quote;
+    }
+
+    /**
+     * Stores the vouchers applied in Walley Checkout on the quote, so the
+     * Magento cart shows them while the customer is still in the checkout.
+     * Invalid voucher data is only logged here; the validation callback
+     * rejects the purchase.
+     */
+    private function applyVouchers(\Magento\Quote\Model\Quote $quote, CheckoutData $checkoutData): bool
+    {
+        try {
+            return $this->voucherApplier->apply($quote, $checkoutData);
+        } catch (ValidationError $e) {
+            $this->logger->addCritical(
+                "Invalid voucher data on synchronize. quoteId: {$quote->getId()}. {$e->getMessage()}"
+            );
+
+            return false;
+        }
+    }
+
+    private function collectTotalsIfVouchersChanged(\Magento\Quote\Model\Quote $quote, bool $vouchersChanged): void
+    {
+        if ($vouchersChanged) {
+            $quote->setTotalsCollectedFlag(false)->collectTotals();
+        }
     }
 
     /**

@@ -64,6 +64,8 @@ define([
             document.addEventListener('collectorCheckoutExpired', self.listener.bind(self));
             document.addEventListener('collectorCheckoutResumed', self.listener.bind(self));
             document.addEventListener('collectorCheckoutShippingUpdated', self.listener.bind(self));
+            document.addEventListener('walleyCheckoutVoucherUpdated', self.listener.bind(self));
+            document.addEventListener('collectorCheckoutVoucherUpdated', self.listener.bind(self));
 
             var event = {type: "update", detail: window.checkoutConfig.quoteData.collectorbank_public_id}
 
@@ -71,8 +73,20 @@ define([
 
         },
         listener: function(event) {
-            event.detail.publicToken = event.detail.token;
+            // Some events, like walleyCheckoutVoucherUpdated, have no payload
+            if (event.detail) {
+                event.detail.publicToken = event.detail.token;
+            }
             switch(event.type) {
+                case 'walleyCheckoutVoucherUpdated':
+                case 'collectorCheckoutVoucherUpdated':
+                    /*
+                        Occurs when the voucher state on the order changes, for instance when a voucher
+                        is applied, removed or fails to redeem.
+                    */
+                    this.voucherUpdated(event);
+                    break;
+
                 case 'collectorCheckoutCustomerUpdated':
                     /*
                         Occurs when the checkout client-side detects any change to customer information,
@@ -236,6 +250,24 @@ define([
                     checkoutData.setShippingAddressFromData(address);
 
                     self.fetchShippingRates();
+                }
+            ).fail(
+                function (response) {
+                    console.error(response);
+                }
+            );
+        },
+        voucherUpdated: function (event) {
+            var publicToken = (event.detail && event.detail.token)
+                || window.checkoutConfig.quoteData.collectorbank_public_id;
+
+            return storage.post(
+                this.getUpdateUrl(event.type, publicToken), JSON.stringify({}), true
+            ).done(
+                function () {
+                    // Reload totals, the voucher total row comes from the vouchers stored on the quote
+                    cartCache.clear('totals');
+                    totalsDefaultProvider.estimateTotals(quote.shippingAddress());
                 }
             ).fail(
                 function (response) {

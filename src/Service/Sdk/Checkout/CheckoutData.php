@@ -32,6 +32,8 @@ use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Customer\PrivateCu
 use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Customer\BusinessCustomerFactory;
 use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Customer\PrivateAddressFactory;
 use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Customer\BusinessAddressFactory;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\AppliedVoucher;
+use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\AppliedVoucherParser;
 
 class CheckoutData
 {
@@ -50,6 +52,10 @@ class CheckoutData
      * @var array<int, array<string, mixed>>
      */
     private array $customField = [];
+    /**
+     * @var array<string, mixed>
+     */
+    private array $responseData = [];
     private FeesFactory $feesFactory;
     private FeeFactory $feeFactory;
     private CartFactory $cartFactory;
@@ -64,6 +70,7 @@ class CheckoutData
     private BusinessCustomerFactory $businessCustomerFactory;
     private BusinessAddressFactory $businessAddressFactory;
     private PrivateAddressFactory $privateAddressFactory;
+    private AppliedVoucherParser $appliedVoucherParser;
 
     public function __construct(
         array $response,
@@ -80,7 +87,8 @@ class CheckoutData
         PrivateCustomerFactory $privateCustomerFactory,
         BusinessCustomerFactory $businessCustomerFactory,
         BusinessAddressFactory $businessAddressFactory,
-        PrivateAddressFactory $privateAddressFactory
+        PrivateAddressFactory $privateAddressFactory,
+        AppliedVoucherParser $appliedVoucherParser
     ) {
         $this->feesFactory = $feesFactory;
         $this->feeFactory = $feeFactory;
@@ -96,6 +104,7 @@ class CheckoutData
         $this->businessCustomerFactory = $businessCustomerFactory;
         $this->businessAddressFactory = $businessAddressFactory;
         $this->privateAddressFactory = $privateAddressFactory;
+        $this->appliedVoucherParser = $appliedVoucherParser;
         $this->fromResponse($response);
     }
 
@@ -196,6 +205,18 @@ class CheckoutData
         return $this->shipping;
     }
 
+    /**
+     * Voyado vouchers applied in Walley Checkout. Parsed on request, so invalid
+     * voucher data only fails where vouchers are used.
+     *
+     * @return AppliedVoucher[]
+     * @throws ValidationError
+     */
+    public function getAppliedVouchers(): array
+    {
+        return $this->appliedVoucherParser->fromResponseData($this->responseData);
+    }
+
     private function fromResponse(array $response) : CheckoutData
     {
         $data = isset($response['data']) ? $response['data'] : false;
@@ -215,6 +236,7 @@ class CheckoutData
         $this->order            = $this->orderFromArray($data);
         $this->shipping         = $this->shippingFromArray($data);
         $this->customField      = $data['customFields'] ?? [];
+        $this->responseData     = $data;
 
         return $this;
     }

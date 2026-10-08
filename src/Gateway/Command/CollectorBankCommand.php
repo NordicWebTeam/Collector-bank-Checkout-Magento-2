@@ -2,10 +2,12 @@
 
 namespace Webbhuset\CollectorCheckout\Gateway\Command;
 
+use Magento\Framework\App\ObjectManager;
 use Magento\Payment\Gateway\CommandInterface as CommandInterface;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Webbhuset\CollectorCheckout\Gateway\Config;
+use Webbhuset\CollectorCheckout\Model\Voucher\Walley\VoucherArticleBuilder;
 use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Errors\ResponseError as ResponseError;
 use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList;
 use Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Rows\InvoiceRow;
@@ -55,6 +57,9 @@ class CollectorBankCommand implements CommandInterface
     protected $orderRepository;
 
     protected $invoiceHandler;
+
+    private VoucherArticleBuilder $voucherArticleBuilder;
+
     /**
      * CollectorBankCommand constructor.
      *
@@ -74,7 +79,8 @@ class CollectorBankCommand implements CommandInterface
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
-        \Webbhuset\CollectorCheckout\Invoice\RowMatcher\InvoiceHandler $invoiceHandler
+        \Webbhuset\CollectorCheckout\Invoice\RowMatcher\InvoiceHandler $invoiceHandler,
+        ?VoucherArticleBuilder $voucherArticleBuilder = null
     ) {
         $this->method           = $client['method'];
         $this->paymentHandler   = $paymentHandler;
@@ -86,6 +92,8 @@ class CollectorBankCommand implements CommandInterface
         $this->orderHandler     = $orderHandler;
         $this->orderRepository  = $orderRepository;
         $this->invoiceHandler   = $invoiceHandler;
+        $this->voucherArticleBuilder = $voucherArticleBuilder
+            ?? ObjectManager::getInstance()->get(VoucherArticleBuilder::class);
     }
 
     /**
@@ -112,7 +120,11 @@ class CollectorBankCommand implements CommandInterface
         $order      = $payment->getOrder();
         $invoice    = $order->getInvoiceCollection()->getLastItem();
 
-        if ($this->isFullActivation($invoice, $order)) {
+        // Orders with vouchers are captured with rows built from the invoice, see VoucherArticleBuilder
+        $isVoucherOrder = $this->voucherArticleBuilder->isVoucherOrder($order);
+        if ($isVoucherOrder) {
+            $articleList = $this->voucherArticleBuilder->forInvoice($invoice);
+        } elseif ($this->isFullActivation($invoice, $order)) {
             $articleList = $this->rowMatcher->fullInvoiceToArticleList($order);
         } else {
             $articleList = $this->rowMatcher->invoiceToArticleList($invoice, $order);
@@ -122,17 +134,20 @@ class CollectorBankCommand implements CommandInterface
             $invoiceNo  = $this->getPurchaseIdentifier($order);
             $orderId = $order->getId();
 
-            if ($this->invoiceHandler->isDecimalRoundingInvoiced($order)) {
-                $articleList->removeDecimalRounding();
-            } else {
-                $this->invoiceHandler->setDecimalRoundingIsInvoiced($order);
+            if (!$isVoucherOrder) {
+                if ($this->invoiceHandler->isDecimalRoundingInvoiced($order)) {
+                    $articleList->removeDecimalRounding();
+                } else {
+                    $this->invoiceHandler->setDecimalRoundingIsInvoiced($order);
+                }
             }
 
             $response = $this->invoice->partActivateInvoice(
                 $invoiceNo,
                 $articleList,
                 $orderId,
-                $invoiceNo
+                $invoiceNo,
+                $isVoucherOrder
             );
 
             $this->saveNewInvoiceNumber($order, $response);
@@ -288,7 +303,11 @@ class CollectorBankCommand implements CommandInterface
 
         $adjustmentsInvoiceRows = $this->getAdjustmentsInvoiceRows($creditMemo);
         $fullCredit = $this->isFullCredit($creditMemo, $order);
-        if (empty($adjustmentsInvoiceRows) && $fullCredit) {
+        // Orders with vouchers refund the rows they were captured with, see VoucherArticleBuilder
+        $isVoucherOrder = $this->voucherArticleBuilder->isVoucherOrder($order);
+        if ($isVoucherOrder) {
+            $articleList = $this->voucherArticleBuilder->forCreditmemo($creditMemo);
+        } elseif (empty($adjustmentsInvoiceRows) && $fullCredit) {
             $articleList = $this->rowMatcher->fullCreditMemoToArticleList($order);
         } else {
             $articleList = $this->rowMatcher->creditMemoToArticleList($creditMemo, $order);
@@ -301,6 +320,14 @@ class CollectorBankCommand implements CommandInterface
         }
 
         if (count($articleList->getArticleList()) == 0) {
+            return true;
+        }
+        // Items paid entirely by voucher refund nothing; Walley only accepts positive refunds
+        if ($isVoucherOrder && $this->voucherArticleBuilder->getTotal($articleList) <= 0) {
+            $this->logger->addInfo(
+                "Refund without amount not sent to Walley. increment orderId: {$order->getIncrementId()}"
+            );
+
             return true;
         }
 

@@ -151,7 +151,8 @@ class Administration
         string $invoiceNo,
         \Webbhuset\CollectorCheckout\Service\Sdk\Payment\Invoice\Article\ArticleList $articleList,
         string $orderId,
-        string $correlationId
+        string $correlationId,
+        bool $replaceItems = false
     ): AdministrationResultInterface {
         $config = $this->getConfig($orderId);
 
@@ -159,7 +160,7 @@ class Administration
         $adapter = $this->adapter->getAdapter($config);
         $walleyOrderId = $this->extractWalleyOrderId->execute((int)$orderId);
         $uniq = uniqid();
-        $adapter->partActivateInvoice($walleyOrderId, $articleList, $uniq);
+        $adapter->partActivateInvoice($walleyOrderId, $articleList, $uniq, $replaceItems);
 
         $this->logger->addInfo(
             "Invoice activated online orderId: {$orderId} invoiceNo: {$walleyOrderId} "

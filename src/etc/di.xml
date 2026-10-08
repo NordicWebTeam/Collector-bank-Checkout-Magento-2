@@ -132,4 +132,8 @@
         <plugin name="webbhuset_collectorcheckout_allow_zero_total"
                 type="Webbhuset\CollectorCheckout\Plugin\AllowZeroTotal"/>
     </type>
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="webbhuset_collectorcheckout_add_vouchers_to_order"
+                type="Webbhuset\CollectorCheckout\Plugin\Voucher\AddVouchersToOrder"/>
+    </type>
 </config>

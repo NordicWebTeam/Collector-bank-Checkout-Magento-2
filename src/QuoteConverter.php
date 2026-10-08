@@ -7,8 +7,10 @@ use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\App\ObjectManager;
 use Magento\Quote\Model\Quote;
 use Webbhuset\CollectorCheckout\Config\Source\Customer\DefaultType;
+use Webbhuset\CollectorCheckout\Model\Voucher\QuoteVoucherTotals;
 use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Cart;
 use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Cart\Item;
 use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\Checkout\Customer\InitializeCustomer;
@@ -44,6 +46,7 @@ class QuoteConverter
     private FeesFactory $feesFactory;
     private FeeFactory $feeFactory;
     private InitializeCustomerFactory $initializeCustomerFactory;
+    private QuoteVoucherTotals $quoteVoucherTotals;
 
     public function __construct(
         \Magento\Tax\Model\Config $taxConfig,
@@ -58,7 +61,8 @@ class QuoteConverter
         ItemFactory $itemFactory,
         FeesFactory $feesFactory,
         FeeFactory $feeFactory,
-        InitializeCustomerFactory $initializeCustomerFactory
+        InitializeCustomerFactory $initializeCustomerFactory,
+        ?QuoteVoucherTotals $quoteVoucherTotals = null
     ) {
         $this->taxConfig            = $taxConfig;
         $this->taxCalculator        = $taxCalculator;
@@ -73,6 +77,8 @@ class QuoteConverter
         $this->feesFactory = $feesFactory;
         $this->feeFactory = $feeFactory;
         $this->initializeCustomerFactory = $initializeCustomerFactory;
+        $this->quoteVoucherTotals = $quoteVoucherTotals
+            ?? ObjectManager::getInstance()->get(QuoteVoucherTotals::class);
     }
 
     public function getCart(\Magento\Quote\Model\Quote $quote) : Cart
@@ -169,7 +175,10 @@ class QuoteConverter
     protected function addRoundingError(\Magento\Quote\Model\Quote $quote, $items)
     {
         $collectorCheckoutSum = $this->sumItems($items) + $this->sumFees($this->getFees($quote));
-        $quoteSum = $quote->getGrandTotal();
+        // Vouchers are deducted by Walley, so the cart sent to Walley is compared without them.
+        // Read before the grand total, it may collect totals
+        $voucherAmount = $this->quoteVoucherTotals->getAmount($quote);
+        $quoteSum = (float) $quote->getGrandTotal() + $voucherAmount;
 
         $roundingError = round($quoteSum - $collectorCheckoutSum, 2);
         if (!($roundingError != 0 && abs($roundingError) < 0.1)) {
