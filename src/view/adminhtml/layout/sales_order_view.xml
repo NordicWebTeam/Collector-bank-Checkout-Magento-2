@@ -12,5 +12,8 @@
                 <argument name="template" xsi:type="string">Webbhuset_CollectorCheckout::info/shipping.phtml</argument>
             </action>
         </referenceBlock>
+        <referenceBlock name="order_totals">
+            <block class="Webbhuset\CollectorCheckout\Block\Sales\VoucherTotal" name="walley_voucher_total"/>
+        </referenceBlock>
     </body>
 </page>

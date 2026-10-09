@@ -1,0 +1,147 @@
+{
+    "walley_voucher": {
+        "column": {
+            "entity_id": true,
+            "quote_id": true,
+            "order_id": true,
+            "voucher_id": true,
+            "code": true,
+            "description": true,
+            "face_amount": true,
+            "amount": true,
+            "base_amount": true,
+            "created_at": true
+        },
+        "index": {
+            "WALLEY_VOUCHER_ORDER_ID": true,
+            "WALLEY_VOUCHER_CODE": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "WALLEY_VOUCHER_QUOTE_ID_VOUCHER_ID": true,
+            "WALLEY_VOUCHER_QUOTE_ID_QUOTE_ENTITY_ID": true,
+            "WALLEY_VOUCHER_ORDER_ID_SALES_ORDER_ENTITY_ID": true
+        }
+    },
+    "walley_voucher_order": {
+        "column": {
+            "order_id": true,
+            "amount": true,
+            "base_amount": true,
+            "shipping_amount": true,
+            "base_shipping_amount": true,
+            "tax_amount": true,
+            "base_tax_amount": true,
+            "shipping_tax_amount": true,
+            "base_shipping_tax_amount": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "WALLEY_VOUCHER_ORDER_ORDER_ID_SALES_ORDER_ENTITY_ID": true
+        }
+    },
+    "walley_voucher_order_item": {
+        "column": {
+            "order_item_id": true,
+            "order_id": true,
+            "amount": true,
+            "base_amount": true,
+            "tax_amount": true,
+            "base_tax_amount": true
+        },
+        "index": {
+            "WALLEY_VOUCHER_ORDER_ITEM_ORDER_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "WALLEY_VOUCHER_ORDER_ITEM_ORDER_ITEM_ID_SALES_ORDER_ITEM_ITEM_ID": true,
+            "WALLEY_VOUCHER_ORDER_ITEM_ORDER_ID_SALES_ORDER_ENTITY_ID": true
+        }
+    },
+    "walley_voucher_invoice": {
+        "column": {
+            "invoice_id": true,
+            "order_id": true,
+            "amount": true,
+            "base_amount": true,
+            "shipping_amount": true,
+            "base_shipping_amount": true,
+            "tax_amount": true,
+            "base_tax_amount": true,
+            "shipping_tax_amount": true,
+            "base_shipping_tax_amount": true
+        },
+        "index": {
+            "WALLEY_VOUCHER_INVOICE_ORDER_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "WALLEY_VOUCHER_INVOICE_INVOICE_ID_SALES_INVOICE_ENTITY_ID": true,
+            "WALLEY_VOUCHER_INVOICE_ORDER_ID_SALES_ORDER_ENTITY_ID": true
+        }
+    },
+    "walley_voucher_invoice_item": {
+        "column": {
+            "invoice_item_id": true,
+            "invoice_id": true,
+            "order_item_id": true,
+            "amount": true,
+            "base_amount": true,
+            "tax_amount": true,
+            "base_tax_amount": true
+        },
+        "index": {
+            "WALLEY_VOUCHER_INVOICE_ITEM_INVOICE_ID": true,
+            "WALLEY_VOUCHER_INVOICE_ITEM_ORDER_ITEM_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "WALLEY_VOUCHER_INVOICE_ITEM_INVOICE_ITEM_ID_SALES_INVOICE_ITEM_ENTITY_ID": true,
+            "WALLEY_VOUCHER_INVOICE_ITEM_INVOICE_ID_SALES_INVOICE_ENTITY_ID": true,
+            "WALLEY_VOUCHER_INVOICE_ITEM_ORDER_ITEM_ID_SALES_ORDER_ITEM_ITEM_ID": true
+        }
+    },
+    "walley_voucher_creditmemo": {
+        "column": {
+            "creditmemo_id": true,
+            "order_id": true,
+            "amount": true,
+            "base_amount": true,
+            "shipping_amount": true,
+            "base_shipping_amount": true,
+            "tax_amount": true,
+            "base_tax_amount": true,
+            "shipping_tax_amount": true,
+            "base_shipping_tax_amount": true
+        },
+        "index": {
+            "WALLEY_VOUCHER_CREDITMEMO_ORDER_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "WALLEY_VOUCHER_CREDITMEMO_CREDITMEMO_ID_SALES_CREDITMEMO_ENTITY_ID": true,
+            "WALLEY_VOUCHER_CREDITMEMO_ORDER_ID_SALES_ORDER_ENTITY_ID": true
+        }
+    },
+    "walley_voucher_creditmemo_item": {
+        "column": {
+            "creditmemo_item_id": true,
+            "creditmemo_id": true,
+            "order_item_id": true,
+            "amount": true,
+            "base_amount": true,
+            "tax_amount": true,
+            "base_tax_amount": true
+        },
+        "index": {
+            "WALLEY_VOUCHER_CREDITMEMO_ITEM_CREDITMEMO_ID": true,
+            "WALLEY_VOUCHER_CREDITMEMO_ITEM_ORDER_ITEM_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "WALLEY_VOUCHER_CREDITMEMO_ITEM_CREDITMEMO_ITEM_ID_SALES_CREDITMEMO_ITEM_ENTITY_ID": true,
+            "WALLEY_VOUCHER_CREDITMEMO_ITEM_CREDITMEMO_ID_SALES_CREDITMEMO_ENTITY_ID": true,
+            "WALLEY_VOUCHER_CREDITMEMO_ITEM_ORDER_ITEM_ID_SALES_ORDER_ITEM_ITEM_ID": true
+        }
+    }
+}

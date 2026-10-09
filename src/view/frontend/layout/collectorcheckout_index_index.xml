@@ -84,6 +84,25 @@
         <move element="checkout.cart.shipping" destination="checkout.cart.items" before="collector-newsletter"/>
         <move element="checkout.cart.totals.container" destination="checkout.cart.container" before="collector-discount"/>
         <referenceContainer name="cart.summary" remove="true" />
+        <referenceBlock name="checkout.cart.totals">
+            <arguments>
+                <argument name="jsLayout" xsi:type="array">
+                    <item name="components" xsi:type="array">
+                        <item name="block-totals" xsi:type="array">
+                            <item name="children" xsi:type="array">
+                                <item name="walley_voucher" xsi:type="array">
+                                    <item name="component" xsi:type="string">Webbhuset_CollectorCheckout/js/view/cart/totals/walley-voucher</item>
+                                    <item name="sortOrder" xsi:type="string">25</item>
+                                    <item name="config" xsi:type="array">
+                                        <item name="title" xsi:type="string" translate="true">Voyado voucher</item>
+                                    </item>
+                                </item>
+                            </item>
+                        </item>
+                    </item>
+                </argument>
+            </arguments>
+        </referenceBlock>
 
         <referenceContainer name="checkout.cart.container">
 

@@ -171,10 +171,14 @@ class CurlWithAccessKey
         return $responseBody;
     }
 
+    /**
+     * @param bool $replaceItems Capture the given items instead of the order's items (Walley "replaceItems")
+     */
     public function partActivateInvoice(
         string $orderReference,
         ArticleList $articleList,
-        string $correlationId
+        string $correlationId,
+        bool $replaceItems = false
     ): string {
         $path = $this->replacePathPrivate($this->partActivatePath, $orderReference);
         $items = $this->convertArticleListToItems($articleList);
@@ -184,6 +188,9 @@ class CurlWithAccessKey
             'actionReference' => $correlationId,
             'items' => $items,
         ];
+        if ($replaceItems) {
+            $body['replaceItems'] = true;
+        }
         $bodyJsonEncoded = json_encode($body);
         $response = $this->sendRequest($path, $bodyJsonEncoded, 'POST');
 
@@ -262,7 +269,8 @@ class CurlWithAccessKey
             $result += $article['Quantity'] * $article['UnitPrice'];
         }
 
-        return $result;
+        // Walley requires the amount to equal the sum of the items, with two decimals
+        return round($result, 2);
     }
 
     /**

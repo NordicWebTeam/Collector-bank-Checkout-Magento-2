@@ -2,6 +2,7 @@
 
 namespace Webbhuset\CollectorCheckout\Service\Validation;
 
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
@@ -15,6 +16,8 @@ use Webbhuset\CollectorCheckout\Config\ConfigFactory;
 use Webbhuset\CollectorCheckout\Exception\QuoteNotInSyncException;
 use Webbhuset\CollectorCheckout\Gateway\Config as GatewayConfig;
 use Webbhuset\CollectorCheckout\Logger\Logger;
+use Webbhuset\CollectorCheckout\Model\Voucher\QuoteVoucherProvider;
+use Webbhuset\CollectorCheckout\Model\Voucher\VoucherApplier;
 use Webbhuset\CollectorCheckout\QuoteComparerFactory;
 use Webbhuset\CollectorCheckout\QuoteUpdater;
 use Webbhuset\CollectorCheckout\Service\Validation\ValidationResultFactory;
@@ -79,6 +82,10 @@ class ProcessReference
      */
     private $logger;
 
+    private VoucherApplier $voucherApplier;
+
+    private QuoteVoucherProvider $quoteVoucherProvider;
+
     /**
      * @param QuoteManagerFactory $quoteManagerFactory
      * @param AdapterFactory $adapterFactory
@@ -91,6 +98,8 @@ class ProcessReference
      * @param CustomerManagerFactory $customerManagerFactory
      * @param ValidationResultFactory $validationResultFactory
      * @param Logger $logger
+     * @param VoucherApplier|null $voucherApplier
+     * @param QuoteVoucherProvider|null $quoteVoucherProvider
      */
     public function __construct(
         QuoteManagerFactory $quoteManagerFactory,
@@ -103,7 +112,9 @@ class ProcessReference
         OrderManagerFactory $orderManagerFactory,
         CustomerManagerFactory $customerManagerFactory,
         ValidationResultFactory $validationResultFactory,
-        Logger $logger
+        Logger $logger,
+        ?VoucherApplier $voucherApplier = null,
+        ?QuoteVoucherProvider $quoteVoucherProvider = null
     ) {
         $this->quoteManagerFactory = $quoteManagerFactory;
         $this->adapterFactory = $adapterFactory;
@@ -116,6 +127,10 @@ class ProcessReference
         $this->customerManagerFactory = $customerManagerFactory;
         $this->validationResultFactory = $validationResultFactory;
         $this->logger = $logger;
+        $this->voucherApplier = $voucherApplier
+            ?? ObjectManager::getInstance()->get(VoucherApplier::class);
+        $this->quoteVoucherProvider = $quoteVoucherProvider
+            ?? ObjectManager::getInstance()->get(QuoteVoucherProvider::class);
     }
 
     /**
@@ -143,6 +158,7 @@ class ProcessReference
 
             $checkoutData = $this->adapterFactory->create()->acquireCheckoutInformationFromQuote($quote);
             $this->quoteUpdater->setQuoteData($quote, $checkoutData);
+            $this->voucherApplier->apply($quote, $checkoutData);
             $quote->setNeedsCollectorUpdate(null);
             $config = $this->configFactory->create(['storeId' => (int)$quote->getStoreId()]);
             if ($config->getIsDeliveryCheckoutActive() && !$config->getIsCustomDeliveryAdapter()) {
@@ -155,6 +171,11 @@ class ProcessReference
                     $carrierCode
                 );
                 $quote = $quoteManager->getQuoteByPublicToken($reference);
+            }
+
+            if ($this->quoteVoucherProvider->getVouchers($quote)) {
+                // Voucher shares only live in memory, so a loaded quote needs its totals collected
+                $quote->setTotalsCollectedFlag(false)->collectTotals();
             }
 
             $this->quoteComparerFactory->create()->isQuoteInSync($quote, $checkoutData);

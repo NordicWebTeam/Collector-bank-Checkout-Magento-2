@@ -1,0 +1,235 @@
+<?xml version="1.0"?>
+<!--
+    Voyado vouchers applied in Walley Checkout. Stored in linked tables only,
+    no columns are added to Magento core tables. All amounts are incl. VAT.
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="walley_voucher" resource="default" engine="innodb" comment="Walley Checkout applied Voyado vouchers">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="int" name="quote_id" unsigned="true" nullable="true" comment="Quote ID"/>
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="true" comment="Order ID"/>
+        <column xsi:type="varchar" name="voucher_id" nullable="false" length="64" comment="Walley voucher ID"/>
+        <column xsi:type="varchar" name="code" nullable="false" length="64" comment="Voucher code"/>
+        <column xsi:type="varchar" name="description" nullable="true" length="255" comment="Voucher description"/>
+        <column xsi:type="decimal" name="face_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher face value"/>
+        <column xsi:type="decimal" name="amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Deducted amount"/>
+        <column xsi:type="decimal" name="base_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Deducted amount in base currency"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Created at"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="WALLEY_VOUCHER_QUOTE_ID_VOUCHER_ID">
+            <column name="quote_id"/>
+            <column name="voucher_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="WALLEY_VOUCHER_QUOTE_ID_QUOTE_ENTITY_ID"
+                    table="walley_voucher" column="quote_id" referenceTable="quote" referenceColumn="entity_id"
+                    onDelete="SET NULL"/>
+        <constraint xsi:type="foreign" referenceId="WALLEY_VOUCHER_ORDER_ID_SALES_ORDER_ENTITY_ID"
+                    table="walley_voucher" column="order_id" referenceTable="sales_order" referenceColumn="entity_id"
+                    onDelete="CASCADE"/>
+        <index referenceId="WALLEY_VOUCHER_ORDER_ID" indexType="btree">
+            <column name="order_id"/>
+        </index>
+        <index referenceId="WALLEY_VOUCHER_CODE" indexType="btree">
+            <column name="code"/>
+        </index>
+    </table>
+
+    <table name="walley_voucher_order" resource="sales" engine="innodb" comment="Walley voucher amounts per order">
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="false" comment="Order ID"/>
+        <column xsi:type="decimal" name="amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher amount"/>
+        <column xsi:type="decimal" name="base_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher amount in base currency"/>
+        <column xsi:type="decimal" name="tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher amount"/>
+        <column xsi:type="decimal" name="base_tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher amount in base currency"/>
+        <column xsi:type="decimal" name="shipping_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher share on shipping"/>
+        <column xsi:type="decimal" name="base_shipping_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher share on shipping in base currency"/>
+        <column xsi:type="decimal" name="shipping_tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher share on shipping"/>
+        <column xsi:type="decimal" name="base_shipping_tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher share on shipping in base currency"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="order_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="WALLEY_VOUCHER_ORDER_ORDER_ID_SALES_ORDER_ENTITY_ID"
+                    table="walley_voucher_order" column="order_id" referenceTable="sales_order"
+                    referenceColumn="entity_id" onDelete="CASCADE"/>
+    </table>
+
+    <table name="walley_voucher_order_item" resource="sales" engine="innodb"
+           comment="Walley voucher amounts per order item">
+        <column xsi:type="int" name="order_item_id" unsigned="true" nullable="false" comment="Order item ID"/>
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="false" comment="Order ID"/>
+        <column xsi:type="decimal" name="amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher share"/>
+        <column xsi:type="decimal" name="base_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher share in base currency"/>
+        <column xsi:type="decimal" name="tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher amount"/>
+        <column xsi:type="decimal" name="base_tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher amount in base currency"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="order_item_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="WALLEY_VOUCHER_ORDER_ITEM_ORDER_ITEM_ID_SALES_ORDER_ITEM_ITEM_ID"
+                    table="walley_voucher_order_item" column="order_item_id" referenceTable="sales_order_item"
+                    referenceColumn="item_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="WALLEY_VOUCHER_ORDER_ITEM_ORDER_ID_SALES_ORDER_ENTITY_ID"
+                    table="walley_voucher_order_item" column="order_id" referenceTable="sales_order"
+                    referenceColumn="entity_id" onDelete="CASCADE"/>
+        <index referenceId="WALLEY_VOUCHER_ORDER_ITEM_ORDER_ID" indexType="btree">
+            <column name="order_id"/>
+        </index>
+    </table>
+
+    <table name="walley_voucher_invoice" resource="sales" engine="innodb" comment="Walley voucher amounts per invoice">
+        <column xsi:type="int" name="invoice_id" unsigned="true" nullable="false" comment="Invoice ID"/>
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="false" comment="Order ID"/>
+        <column xsi:type="decimal" name="amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher amount"/>
+        <column xsi:type="decimal" name="base_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher amount in base currency"/>
+        <column xsi:type="decimal" name="tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher amount"/>
+        <column xsi:type="decimal" name="base_tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher amount in base currency"/>
+        <column xsi:type="decimal" name="shipping_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher share on shipping"/>
+        <column xsi:type="decimal" name="base_shipping_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher share on shipping in base currency"/>
+        <column xsi:type="decimal" name="shipping_tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher share on shipping"/>
+        <column xsi:type="decimal" name="base_shipping_tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher share on shipping in base currency"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="invoice_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="WALLEY_VOUCHER_INVOICE_INVOICE_ID_SALES_INVOICE_ENTITY_ID"
+                    table="walley_voucher_invoice" column="invoice_id" referenceTable="sales_invoice"
+                    referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="WALLEY_VOUCHER_INVOICE_ORDER_ID_SALES_ORDER_ENTITY_ID"
+                    table="walley_voucher_invoice" column="order_id" referenceTable="sales_order"
+                    referenceColumn="entity_id" onDelete="CASCADE"/>
+        <index referenceId="WALLEY_VOUCHER_INVOICE_ORDER_ID" indexType="btree">
+            <column name="order_id"/>
+        </index>
+    </table>
+
+    <table name="walley_voucher_invoice_item" resource="sales" engine="innodb"
+           comment="Walley voucher amounts per invoice item">
+        <column xsi:type="int" name="invoice_item_id" unsigned="true" nullable="false" comment="Invoice item ID"/>
+        <column xsi:type="int" name="invoice_id" unsigned="true" nullable="false" comment="Invoice ID"/>
+        <column xsi:type="int" name="order_item_id" unsigned="true" nullable="false" comment="Order item ID"/>
+        <column xsi:type="decimal" name="amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher share"/>
+        <column xsi:type="decimal" name="base_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher share in base currency"/>
+        <column xsi:type="decimal" name="tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher amount"/>
+        <column xsi:type="decimal" name="base_tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher amount in base currency"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="invoice_item_id"/>
+        </constraint>
+        <constraint xsi:type="foreign"
+                    referenceId="WALLEY_VOUCHER_INVOICE_ITEM_INVOICE_ITEM_ID_SALES_INVOICE_ITEM_ENTITY_ID"
+                    table="walley_voucher_invoice_item" column="invoice_item_id" referenceTable="sales_invoice_item"
+                    referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="WALLEY_VOUCHER_INVOICE_ITEM_INVOICE_ID_SALES_INVOICE_ENTITY_ID"
+                    table="walley_voucher_invoice_item" column="invoice_id" referenceTable="sales_invoice"
+                    referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign"
+                    referenceId="WALLEY_VOUCHER_INVOICE_ITEM_ORDER_ITEM_ID_SALES_ORDER_ITEM_ITEM_ID"
+                    table="walley_voucher_invoice_item" column="order_item_id" referenceTable="sales_order_item"
+                    referenceColumn="item_id" onDelete="CASCADE"/>
+        <index referenceId="WALLEY_VOUCHER_INVOICE_ITEM_INVOICE_ID" indexType="btree">
+            <column name="invoice_id"/>
+        </index>
+        <index referenceId="WALLEY_VOUCHER_INVOICE_ITEM_ORDER_ITEM_ID" indexType="btree">
+            <column name="order_item_id"/>
+        </index>
+    </table>
+
+    <table name="walley_voucher_creditmemo" resource="sales" engine="innodb"
+           comment="Walley voucher amounts per credit memo">
+        <column xsi:type="int" name="creditmemo_id" unsigned="true" nullable="false" comment="Credit memo ID"/>
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="false" comment="Order ID"/>
+        <column xsi:type="decimal" name="amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher amount"/>
+        <column xsi:type="decimal" name="base_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher amount in base currency"/>
+        <column xsi:type="decimal" name="tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher amount"/>
+        <column xsi:type="decimal" name="base_tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher amount in base currency"/>
+        <column xsi:type="decimal" name="shipping_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher share on shipping"/>
+        <column xsi:type="decimal" name="base_shipping_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher share on shipping in base currency"/>
+        <column xsi:type="decimal" name="shipping_tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher share on shipping"/>
+        <column xsi:type="decimal" name="base_shipping_tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher share on shipping in base currency"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="creditmemo_id"/>
+        </constraint>
+        <constraint xsi:type="foreign"
+                    referenceId="WALLEY_VOUCHER_CREDITMEMO_CREDITMEMO_ID_SALES_CREDITMEMO_ENTITY_ID"
+                    table="walley_voucher_creditmemo" column="creditmemo_id" referenceTable="sales_creditmemo"
+                    referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="WALLEY_VOUCHER_CREDITMEMO_ORDER_ID_SALES_ORDER_ENTITY_ID"
+                    table="walley_voucher_creditmemo" column="order_id" referenceTable="sales_order"
+                    referenceColumn="entity_id" onDelete="CASCADE"/>
+        <index referenceId="WALLEY_VOUCHER_CREDITMEMO_ORDER_ID" indexType="btree">
+            <column name="order_id"/>
+        </index>
+    </table>
+
+    <table name="walley_voucher_creditmemo_item" resource="sales" engine="innodb"
+           comment="Walley voucher amounts per credit memo item">
+        <column xsi:type="int" name="creditmemo_item_id" unsigned="true" nullable="false"
+                comment="Credit memo item ID"/>
+        <column xsi:type="int" name="creditmemo_id" unsigned="true" nullable="false" comment="Credit memo ID"/>
+        <column xsi:type="int" name="order_item_id" unsigned="true" nullable="false" comment="Order item ID"/>
+        <column xsi:type="decimal" name="amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher share"/>
+        <column xsi:type="decimal" name="base_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="Voucher share in base currency"/>
+        <column xsi:type="decimal" name="tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher amount"/>
+        <column xsi:type="decimal" name="base_tax_amount" scale="4" precision="20" nullable="false" default="0"
+                comment="VAT part of the voucher amount in base currency"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="creditmemo_item_id"/>
+        </constraint>
+        <constraint xsi:type="foreign"
+                    referenceId="WALLEY_VOUCHER_CREDITMEMO_ITEM_CREDITMEMO_ITEM_ID_SALES_CREDITMEMO_ITEM_ENTITY_ID"
+                    table="walley_voucher_creditmemo_item" column="creditmemo_item_id"
+                    referenceTable="sales_creditmemo_item" referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign"
+                    referenceId="WALLEY_VOUCHER_CREDITMEMO_ITEM_CREDITMEMO_ID_SALES_CREDITMEMO_ENTITY_ID"
+                    table="walley_voucher_creditmemo_item" column="creditmemo_id" referenceTable="sales_creditmemo"
+                    referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign"
+                    referenceId="WALLEY_VOUCHER_CREDITMEMO_ITEM_ORDER_ITEM_ID_SALES_ORDER_ITEM_ITEM_ID"
+                    table="walley_voucher_creditmemo_item" column="order_item_id" referenceTable="sales_order_item"
+                    referenceColumn="item_id" onDelete="CASCADE"/>
+        <index referenceId="WALLEY_VOUCHER_CREDITMEMO_ITEM_CREDITMEMO_ID" indexType="btree">
+            <column name="creditmemo_id"/>
+        </index>
+        <index referenceId="WALLEY_VOUCHER_CREDITMEMO_ITEM_ORDER_ITEM_ID" indexType="btree">
+            <column name="order_item_id"/>
+        </index>
+    </table>
+</schema>

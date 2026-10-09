@@ -2,7 +2,9 @@
 
 namespace Webbhuset\CollectorCheckout;
 
+use Magento\Framework\App\ObjectManager;
 use Webbhuset\CollectorCheckout\Exception\QuoteNotInSyncException;
+use Webbhuset\CollectorCheckout\Model\Voucher\QuoteVoucherTotals;
 
 class QuoteComparer
 {
@@ -13,17 +15,21 @@ class QuoteComparer
      * @var Shipment\IsCustomDeliveryAdapter
      */
     private $isCustomDeliveryAdapter;
+    private QuoteVoucherTotals $quoteVoucherTotals;
 
     public function __construct(
         \Webbhuset\CollectorCheckout\QuoteConverter $quoteConverter,
         \Webbhuset\CollectorCheckout\Config\Config $config,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Webbhuset\CollectorCheckout\Shipment\IsCustomDeliveryAdapter $isCustomDeliveryAdapter
+        \Webbhuset\CollectorCheckout\Shipment\IsCustomDeliveryAdapter $isCustomDeliveryAdapter,
+        ?QuoteVoucherTotals $quoteVoucherTotals = null
     ) {
         $this->quoteConverter           = $quoteConverter;
         $this->config                   = $config;
         $this->storeManager             = $storeManager;
         $this->isCustomDeliveryAdapter  = $isCustomDeliveryAdapter;
+        $this->quoteVoucherTotals       = $quoteVoucherTotals
+            ?? ObjectManager::getInstance()->get(QuoteVoucherTotals::class);
     }
 
     /**
@@ -53,10 +59,13 @@ class QuoteComparer
         \Magento\Quote\Model\Quote $quote,
         \Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData $checkoutData
     ) {
-        $grandTotalCeil = ceil($quote->getGrandTotal());
+        // Walley's cart does not include vouchers. Read before the grand total, it may collect totals
+        $voucherAmount = $this->quoteVoucherTotals->getAmount($quote);
+        $grandTotal = (float) $quote->getGrandTotal() + $voucherAmount;
+        $grandTotalCeil = ceil($grandTotal);
         $collectorTotalCeil = ceil($this->calculateCollectorTotal($checkoutData));
 
-        $grandTotalRound = round($quote->getGrandTotal());
+        $grandTotalRound = round($grandTotal);
         $collectorTotalRound = round($this->calculateCollectorTotal($checkoutData));
 
         return ($grandTotalCeil == $collectorTotalCeil)

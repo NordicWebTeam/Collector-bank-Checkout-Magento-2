@@ -8,6 +8,8 @@ use Webbhuset\CollectorCheckout\Service\Sdk\Checkout\CheckoutData;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Webbhuset\CollectorCheckout\Config\Config;
 use Magento\Newsletter\Model\SubscriptionManagerInterface;
+use Magento\Framework\App\ObjectManager;
+use Webbhuset\CollectorCheckout\Model\Voucher\VoucherConsistencyChecker;
 
 /**
  * Class Manager
@@ -80,6 +82,8 @@ class Manager
      */
     protected $checkoutSession;
 
+    private VoucherConsistencyChecker $voucherConsistencyChecker;
+
     public function __construct(
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Webbhuset\CollectorCheckout\Data\OrderHandler $orderHandler,
@@ -96,7 +100,8 @@ class Manager
         SubscriptionManagerInterface $subscriptionManager,
         \Webbhuset\CollectorCheckout\Config\Config $config,
         \Webbhuset\CollectorCheckout\Carrier\Manager $carrierManager,
-        CheckoutSession $checkoutSession
+        CheckoutSession $checkoutSession,
+        ?VoucherConsistencyChecker $voucherConsistencyChecker = null
     ) {
         $this->collectorAdapter      = $collectorAdapter;
         $this->orderRepository       = $orderRepository;
@@ -114,6 +119,8 @@ class Manager
         $this->carrierManager        = $carrierManager;
         $this->setOrderStatus        = $setOrderStatus;
         $this->checkoutSession  = $checkoutSession;
+        $this->voucherConsistencyChecker = $voucherConsistencyChecker
+            ?? ObjectManager::getInstance()->get(VoucherConsistencyChecker::class);
     }
 
     /**
@@ -258,6 +265,7 @@ class Manager
 
         $config = $this->configFactory->create(['storeId' => (int)$order->getStoreId()]);
         $checkoutData = $checkoutAdapter->acquireCheckoutInformation($config, $collectorBankPrivateId);
+        $this->voucherConsistencyChecker->check($order, $checkoutData);
 
         $paymentResult = $checkoutData->getPurchase()->getResult()->getResult();
 
