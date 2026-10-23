@@ -215,9 +215,9 @@ class RowMatcher
         return $this->invoiceRowFactory->create([
             'articleId' => $articleId,
             'description' => $description,
-            'qty' => $qty,
-            'adjustmentFee' => $adjustmentFee,
-            'taxPercent' => (float) $taxPercent,
+            'quantity' => $qty,
+            'unitPrice' => $adjustmentFee,
+            'vat' => (float) $taxPercent,
             'type' => $type
         ]);
     }
